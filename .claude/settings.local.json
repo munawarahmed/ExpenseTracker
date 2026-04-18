@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh auth *)",
+      "Bash(sw_vers)",
+      "Bash(brew install *)",
+      "Bash(xcodegen generate *)",
+      "Bash(xcodebuild -project ExpenseTracker.xcodeproj -scheme ExpenseTracker -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' build)",
+      "Bash(git add *)",
+      "Bash(git -c user.name=Munawar -c user.email=munawar@local commit -m 'Add generated Xcode project + assets *)"
+    ]
+  }
+}
