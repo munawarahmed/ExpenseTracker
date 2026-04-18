@@ -102,48 +102,90 @@
     padding: 0;
   }
   input[type="number"].big {
-    font-size: 44px; font-weight: 600; text-align: center;
-    padding: 16px 0 4px;
+    font-size: 48px; font-weight: 700; text-align: center;
+    padding: 18px 0 4px;
+    letter-spacing: -1px;
   }
+  /* Amount-with-prefix layout: "Rs" sits inline so the user always knows the
+     currency without reading the hint line. */
+  .amount-wrap {
+    display: flex; align-items: baseline; justify-content: center;
+    gap: 8px; padding: 4px 0;
+  }
+  .amount-wrap .amount-prefix {
+    font-size: 28px; font-weight: 600; color: var(--text-secondary);
+    padding-top: 14px;
+  }
+  .amount-wrap input { width: auto; max-width: 70%; }
   .hint {
     text-align: center; color: var(--text-secondary);
-    font-size: 13px; padding-bottom: 12px;
+    font-size: 13px; padding-bottom: 14px;
+  }
+
+  /* Summary bar at top of Add tab. */
+  .summary-bar {
+    display: flex; align-items: center;
+    background: var(--card); border-radius: 12px;
+    padding: 12px 4px;
+  }
+  .summary-cell { flex: 1; text-align: center; }
+  .summary-label {
+    font-size: 11px; font-weight: 500;
+    color: var(--text-secondary); letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .summary-value {
+    font-size: 20px; font-weight: 700;
+    margin-top: 2px; letter-spacing: -0.3px;
+  }
+  .summary-divider {
+    width: 1px; align-self: stretch;
+    background: var(--separator); margin: 4px 0;
   }
 
   /* -------- Buttons -------- */
   .btn {
     display: block; width: 100%;
-    padding: 15px 20px;
-    border-radius: 12px;
-    font-size: 17px; font-weight: 600;
+    padding: 18px 20px;
+    border-radius: 14px;
+    font-size: 18px; font-weight: 600;
     text-align: center;
     transition: opacity 0.15s, transform 0.05s;
   }
-  .btn:active { opacity: 0.7; transform: scale(0.99); }
-  .btn-primary { background: var(--accent); color: #fff; }
-  .btn-primary:disabled { opacity: 0.4; }
+  .btn:active { opacity: 0.8; transform: scale(0.99); }
+  .btn-primary {
+    background: var(--accent); color: #fff;
+    box-shadow: 0 4px 14px rgba(78,205,196,0.35);
+  }
+  .btn-primary:disabled { opacity: 0.35; box-shadow: none; }
   .btn-danger { color: var(--danger); background: var(--card); }
   .btn-link { color: var(--accent); background: none; font-weight: 500; padding: 8px 0; }
 
   /* -------- Category chips -------- */
+  /* Wrap across multiple rows rather than horizontal scroll — every category
+     is visible at once, which cuts tap-to-select time. */
   .chips {
-    display: flex; gap: 8px;
-    overflow-x: auto;
-    padding: 4px 16px 12px;
-    scrollbar-width: none;
+    display: flex; flex-wrap: wrap; gap: 8px;
+    padding: 4px 14px 14px;
   }
-  .chips::-webkit-scrollbar { display: none; }
   .chip {
-    flex-shrink: 0;
     display: inline-flex; align-items: center; gap: 6px;
     padding: 10px 14px;
-    border-radius: 20px;
+    border-radius: 22px;
     background: var(--input-bg);
     font-size: 14px; font-weight: 500;
     border: 2px solid transparent;
     white-space: nowrap;
+    transition: transform 0.08s;
   }
-  .chip.active { border-color: currentColor; }
+  .chip:active { transform: scale(0.96); }
+  /* Active chip: solid fill in the category's color so selection is unmistakable. */
+  .chip.active {
+    color: #fff !important;
+    background: currentColor !important;
+    border-color: currentColor;
+  }
+  .chip.active > span { color: #fff; }
   .chip .emoji { font-size: 16px; }
 
   /* -------- Expense list rows -------- */
@@ -222,12 +264,20 @@
   }
   .tabbar button {
     flex: 1;
-    display: flex; flex-direction: column; align-items: center; gap: 2px;
-    padding: 10px 0 6px;
-    font-size: 10px; color: var(--text-secondary);
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 10px 0 8px;
+    font-size: 11px; font-weight: 500;
+    color: var(--text-secondary);
+    transition: color 0.15s;
   }
-  .tabbar button .emoji { font-size: 22px; }
-  .tabbar button.active { color: var(--accent); }
+  .tabbar button .emoji { font-size: 24px; line-height: 1; }
+  .tabbar button.active { color: var(--accent); font-weight: 600; }
+  /* Subtle pill behind active tab icon for extra clarity. */
+  .tabbar button.active .emoji {
+    background: rgba(78,205,196,0.15);
+    border-radius: 10px;
+    padding: 2px 10px;
+  }
 
   /* -------- Modal -------- */
   .modal-backdrop {
@@ -331,11 +381,29 @@
   <section class="tab-panel active" data-panel="add">
     <div class="header"><h1>Add Expense</h1></div>
 
+    <!-- At-a-glance summary: today + this month. Keeps context while adding. -->
+    <div class="section">
+      <div class="summary-bar">
+        <div class="summary-cell">
+          <div class="summary-label">Today</div>
+          <div class="summary-value" id="summaryToday">Rs 0</div>
+        </div>
+        <div class="summary-divider"></div>
+        <div class="summary-cell">
+          <div class="summary-label">This month</div>
+          <div class="summary-value" id="summaryMonth">Rs 0</div>
+        </div>
+      </div>
+    </div>
+
     <div class="section">
       <div class="section-title">Amount</div>
       <div class="card">
-        <input type="number" id="amount" class="big" inputmode="decimal" step="0.01" placeholder="0.00">
-        <div class="hint" id="currencyHint"></div>
+        <div class="amount-wrap">
+          <span class="amount-prefix">Rs</span>
+          <input type="number" id="amount" class="big" inputmode="decimal" step="1" placeholder="0">
+        </div>
+        <div class="hint" id="currencyHint">Pakistani Rupee</div>
       </div>
     </div>
 
@@ -475,25 +543,36 @@ const STORAGE_KEY = 'expenseTracker.v1';
 const BUDGET_KEY = 'expenseTracker.budget';
 
 const DEFAULT_CATEGORIES = [
-  { id: 'c_food',      name: 'Food & Dining',       emoji: '🍽️', color: '#FF6B6B' },
-  { id: 'c_groceries', name: 'Groceries / Kitchen', emoji: '🛒', color: '#4ECDC4' },
-  { id: 'c_transport', name: 'Transportation',      emoji: '🚗', color: '#45B7D1' },
-  { id: 'c_bills',     name: 'Bills & Utilities',   emoji: '⚡', color: '#FFA07A' },
-  { id: 'c_rent',      name: 'Rent',                emoji: '🏠', color: '#8E7CC3' },
-  { id: 'c_fun',       name: 'Entertainment',       emoji: '🎮', color: '#F4A261' },
-  { id: 'c_shopping',  name: 'Shopping',            emoji: '🛍️', color: '#E76F51' },
-  { id: 'c_health',    name: 'Health & Medical',    emoji: '💊', color: '#2A9D8F' },
-  { id: 'c_education', name: 'Education',           emoji: '📚', color: '#264653' },
-  { id: 'c_travel',    name: 'Travel',              emoji: '✈️', color: '#06AED5' },
-  { id: 'c_charity',   name: 'Donations / Charity', emoji: '❤️', color: '#E63946' },
-  { id: 'c_personal',  name: 'Personal Expenses',   emoji: '👤', color: '#9D4EDD' },
-  { id: 'c_misc',      name: 'Miscellaneous',       emoji: '📌', color: '#6C757D' },
+  { id: 'c_food',       name: 'Food & Dining',       emoji: '🍽️', color: '#FF6B6B' },
+  { id: 'c_groceries',  name: 'Groceries / Kitchen', emoji: '🛒', color: '#4ECDC4' },
+  { id: 'c_transport',  name: 'Transportation',      emoji: '🚗', color: '#45B7D1' },
+  { id: 'c_bills',      name: 'Bills & Utilities',   emoji: '⚡', color: '#FFA07A' },
+  { id: 'c_rent',       name: 'Rent',                emoji: '🏠', color: '#8E7CC3' },
+  { id: 'c_fun',        name: 'Entertainment',       emoji: '🎮', color: '#F4A261' },
+  { id: 'c_shopping',   name: 'Shopping',            emoji: '🛍️', color: '#E76F51' },
+  { id: 'c_health',     name: 'Health & Medical',    emoji: '💊', color: '#2A9D8F' },
+  { id: 'c_education',  name: 'Education',           emoji: '📚', color: '#264653' },
+  { id: 'c_travel',     name: 'Travel',              emoji: '✈️', color: '#06AED5' },
+  { id: 'c_charity',    name: 'Donations / Charity', emoji: '❤️', color: '#E63946' },
+  { id: 'c_personal',   name: 'Personal Expenses',   emoji: '👤', color: '#9D4EDD' },
+  { id: 'c_investment', name: 'Investment',          emoji: '📈', color: '#34C759' },
+  { id: 'c_misc',       name: 'Miscellaneous',       emoji: '📌', color: '#6C757D' },
 ];
 
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const s = JSON.parse(raw);
+      // Migration: inject any DEFAULT_CATEGORIES that were added after the user
+      // first opened the app (so existing users get "Investment" automatically).
+      DEFAULT_CATEGORIES.forEach(def => {
+        if (!s.categories.some(c => c.id === def.id || c.name === def.name)) {
+          s.categories.push(def);
+        }
+      });
+      return s;
+    }
   } catch {}
   return { categories: DEFAULT_CATEGORIES.slice(), expenses: [] };
 }
@@ -503,27 +582,13 @@ function saveState() {
 let state = loadState();
 
 // ---------- Formatting ----------
-const locale = navigator.language || 'en-US';
-let currency = 'USD';
-try {
-  // Best-effort detect of local currency from locale.
-  const parts = new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD' })
-    .formatToParts(0);
-  // No direct way to get default; leave USD unless we have a better hint.
-  // Try to use Intl.Locale for region-based currency guess.
-  const region = new Intl.Locale(locale).region;
-  const regionCurrency = {
-    US:'USD',GB:'GBP',EU:'EUR',DE:'EUR',FR:'EUR',ES:'EUR',IT:'EUR',IE:'EUR',NL:'EUR',
-    IN:'INR',PK:'PKR',BD:'BDT',LK:'LKR',AE:'AED',SA:'SAR',
-    CA:'CAD',AU:'AUD',NZ:'NZD',JP:'JPY',CN:'CNY',KR:'KRW',SG:'SGD',HK:'HKD',
-    MX:'MXN',BR:'BRL',AR:'ARS',ZA:'ZAR',CH:'CHF',SE:'SEK',NO:'NOK',DK:'DKK',
-    TR:'TRY',RU:'RUB',PL:'PLN',
-  };
-  if (region && regionCurrency[region]) currency = regionCurrency[region];
-} catch {}
-
+// Pakistan Rupee — fixed for this build. Using en-PK locale gives "Rs" /
+// correct grouping. Fraction digits set to 0 since PKR is typically written
+// without paisa for everyday amounts.
+const locale = 'en-PK';
+const currency = 'PKR';
 const money = v => new Intl.NumberFormat(locale, {
-  style: 'currency', currency, maximumFractionDigits: 2,
+  style: 'currency', currency, maximumFractionDigits: 0, minimumFractionDigits: 0,
 }).format(v || 0);
 
 // ---------- Tab switching ----------
@@ -550,8 +615,6 @@ const dateInput = document.getElementById('date');
 const noteInput = document.getElementById('note');
 const chipsEl = document.getElementById('categoryChips');
 const saveBtn = document.getElementById('saveBtn');
-document.getElementById('currencyHint').textContent = 'Amount in ' + currency;
-
 let selectedCategoryId = state.categories[0]?.id || null;
 
 function renderAddTab() {
@@ -564,14 +627,35 @@ function renderAddTab() {
   }
   state.categories.forEach(c => {
     const btn = document.createElement('button');
-    btn.className = 'chip' + (c.id === selectedCategoryId ? ' active' : '');
+    const isActive = c.id === selectedCategoryId;
+    btn.className = 'chip' + (isActive ? ' active' : '');
     btn.style.color = c.color;
-    btn.style.background = hexToRgba(c.color, 0.15);
+    // Inactive chips get a 15%-opacity tint of their color for a soft background.
+    if (!isActive) btn.style.background = hexToRgba(c.color, 0.15);
     btn.innerHTML = `<span class="emoji">${c.emoji}</span><span>${escapeHtml(c.name)}</span>`;
     btn.onclick = () => { selectedCategoryId = c.id; renderAddTab(); updateSaveEnabled(); };
     chipsEl.appendChild(btn);
   });
+  // Refresh the at-a-glance summary (today + month totals).
+  renderSummaryBar();
   updateSaveEnabled();
+}
+
+// Summary values shown at the top of the Add tab.
+function renderSummaryBar() {
+  const today = todayIso();
+  const todayTotal = state.expenses
+    .filter(e => e.date === today)
+    .reduce((s, e) => s + e.amount, 0);
+  const now = new Date();
+  const y = now.getFullYear(), m = now.getMonth();
+  const monthTotal = state.expenses
+    .filter(e => { const d = new Date(e.date); return d.getFullYear() === y && d.getMonth() === m; })
+    .reduce((s, e) => s + e.amount, 0);
+  const t = document.getElementById('summaryToday');
+  const mm = document.getElementById('summaryMonth');
+  if (t) t.textContent = money(todayTotal);
+  if (mm) mm.textContent = money(monthTotal);
 }
 
 function updateSaveEnabled() {
@@ -732,9 +816,10 @@ function editExpense(id) {
         chips.innerHTML = '';
         state.categories.forEach(c => {
           const b = document.createElement('button');
-          b.className = 'chip' + (c.id === catId ? ' active' : '');
+          const active = c.id === catId;
+          b.className = 'chip' + (active ? ' active' : '');
           b.style.color = c.color;
-          b.style.background = hexToRgba(c.color, 0.15);
+          if (!active) b.style.background = hexToRgba(c.color, 0.15);
           b.innerHTML = `<span class="emoji">${c.emoji}</span><span>${escapeHtml(c.name)}</span>`;
           b.onclick = () => { catId = c.id; renderChips(); };
           chips.appendChild(b);
@@ -910,7 +995,10 @@ function drawPie(slices, total) {
       startAngle = endAngle;
     });
   }
-  svg.innerHTML = paths + `<text x="100" y="96" text-anchor="middle" font-size="11" fill="var(--text-secondary)" font-family="-apple-system">Total</text><text x="100" y="116" text-anchor="middle" font-size="16" font-weight="600" fill="var(--text)" font-family="-apple-system">${escapeHtml(money(total))}</text>`;
+  // Shrink center-number font for long PKR amounts so it fits inside the donut.
+  const centerStr = money(total);
+  const fontSize = centerStr.length > 12 ? 11 : centerStr.length > 9 ? 13 : 15;
+  svg.innerHTML = paths + `<text x="100" y="94" text-anchor="middle" font-size="11" fill="var(--text-secondary)" font-family="-apple-system">Total</text><text x="100" y="114" text-anchor="middle" font-size="${fontSize}" font-weight="700" fill="var(--text)" font-family="-apple-system">${escapeHtml(centerStr)}</text>`;
 }
 
 // ---------- CATEGORIES tab ----------
