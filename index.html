@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Expenses">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#4ECDC4">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<title>Expense Tracker</title>
+<style>
+  /* -------- Design tokens (light + dark) -------- */
+  :root {
+    --bg: #f2f2f7;
+    --card: #ffffff;
+    --text: #000;
+    --text-secondary: #8e8e93;
+    --text-tertiary: #c7c7cc;
+    --separator: rgba(60, 60, 67, 0.12);
+    --accent: #4ECDC4;
+    --danger: #ff3b30;
+    --warning: #ff9500;
+    --success: #34c759;
+    --input-bg: #efeff4;
+    --tabbar-bg: rgba(249, 249, 249, 0.94);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #000;
+      --card: #1c1c1e;
+      --text: #fff;
+      --text-secondary: #8e8e93;
+      --text-tertiary: #48484a;
+      --separator: rgba(84, 84, 88, 0.4);
+      --input-bg: #2c2c2e;
+      --tabbar-bg: rgba(28, 28, 30, 0.94);
+    }
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+    background: var(--bg); color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior-y: contain;
+  }
+  button, input, textarea, select {
+    font: inherit; color: inherit;
+    border: none; outline: none; background: none;
+  }
+  button { cursor: pointer; }
+
+  /* -------- Layout shell -------- */
+  #app {
+    min-height: 100vh;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom));
+    padding-top: env(safe-area-inset-top);
+  }
+  .header {
+    padding: 8px 20px 4px;
+    display: flex; align-items: baseline; justify-content: space-between;
+  }
+  .header h1 { font-size: 34px; font-weight: 700; margin: 0; letter-spacing: -0.5px; }
+  .header .actions { display: flex; gap: 8px; }
+  .header .icon-btn {
+    width: 34px; height: 34px; border-radius: 17px;
+    background: var(--input-bg);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 17px;
+  }
+  .section {
+    margin: 16px 20px;
+  }
+  .section-title {
+    font-size: 13px; font-weight: 400; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--text-secondary);
+    padding: 0 4px 6px;
+  }
+  .card {
+    background: var(--card);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .row {
+    display: flex; align-items: center;
+    padding: 12px 16px;
+    min-height: 44px;
+    border-bottom: 0.5px solid var(--separator);
+  }
+  .row:last-child { border-bottom: none; }
+  .row > .label { flex: 1; }
+  .row > .value { color: var(--text-secondary); }
+
+  /* -------- Inputs -------- */
+  input[type="number"], input[type="text"], input[type="date"], textarea, select {
+    width: 100%;
+    background: transparent;
+    padding: 0;
+  }
+  input[type="number"].big {
+    font-size: 44px; font-weight: 600; text-align: center;
+    padding: 16px 0 4px;
+  }
+  .hint {
+    text-align: center; color: var(--text-secondary);
+    font-size: 13px; padding-bottom: 12px;
+  }
+
+  /* -------- Buttons -------- */
+  .btn {
+    display: block; width: 100%;
+    padding: 15px 20px;
+    border-radius: 12px;
+    font-size: 17px; font-weight: 600;
+    text-align: center;
+    transition: opacity 0.15s, transform 0.05s;
+  }
+  .btn:active { opacity: 0.7; transform: scale(0.99); }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:disabled { opacity: 0.4; }
+  .btn-danger { color: var(--danger); background: var(--card); }
+  .btn-link { color: var(--accent); background: none; font-weight: 500; padding: 8px 0; }
+
+  /* -------- Category chips -------- */
+  .chips {
+    display: flex; gap: 8px;
+    overflow-x: auto;
+    padding: 4px 16px 12px;
+    scrollbar-width: none;
+  }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip {
+    flex-shrink: 0;
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 14px;
+    border-radius: 20px;
+    background: var(--input-bg);
+    font-size: 14px; font-weight: 500;
+    border: 2px solid transparent;
+    white-space: nowrap;
+  }
+  .chip.active { border-color: currentColor; }
+  .chip .emoji { font-size: 16px; }
+
+  /* -------- Expense list rows -------- */
+  .expense-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 16px;
+    border-bottom: 0.5px solid var(--separator);
+  }
+  .expense-row:last-child { border-bottom: none; }
+  .expense-icon {
+    width: 40px; height: 40px; border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .expense-main { flex: 1; min-width: 0; }
+  .expense-main .title { font-size: 16px; font-weight: 500; }
+  .expense-main .sub {
+    font-size: 13px; color: var(--text-secondary);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .expense-amount {
+    font-size: 17px; font-weight: 600; margin-left: 8px;
+  }
+
+  /* -------- Analytics -------- */
+  .big-total {
+    font-size: 44px; font-weight: 700; letter-spacing: -1px;
+    padding: 4px 16px 0;
+  }
+  .big-total .sub {
+    display: block;
+    font-size: 13px; font-weight: 400; color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    padding-bottom: 4px;
+  }
+  .progress-track {
+    height: 6px; background: var(--input-bg); border-radius: 3px;
+    overflow: hidden; margin-top: 8px;
+  }
+  .progress-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+  .warning-banner {
+    font-size: 13px; font-weight: 500;
+    padding: 10px 14px; border-radius: 10px;
+    margin-top: 10px;
+  }
+  .warning-banner.orange { color: var(--warning); background: rgba(255,149,0,0.12); }
+  .warning-banner.red { color: var(--danger); background: rgba(255,59,48,0.12); }
+
+  .pie-wrap { padding: 8px 16px 16px; display: flex; justify-content: center; }
+  .pie-wrap svg { width: 200px; height: 200px; }
+
+  .month-switcher {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px;
+  }
+  .month-switcher h2 { margin: 0; font-size: 20px; font-weight: 600; }
+  .month-switcher button {
+    width: 34px; height: 34px; border-radius: 17px;
+    background: var(--input-bg);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .month-switcher button:disabled { opacity: 0.3; }
+
+  /* -------- Tab bar (pinned bottom) -------- */
+  .tabbar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    display: flex;
+    background: var(--tabbar-bg);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+    border-top: 0.5px solid var(--separator);
+    padding-bottom: env(safe-area-inset-bottom);
+    z-index: 10;
+  }
+  .tabbar button {
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    padding: 10px 0 6px;
+    font-size: 10px; color: var(--text-secondary);
+  }
+  .tabbar button .emoji { font-size: 22px; }
+  .tabbar button.active { color: var(--accent); }
+
+  /* -------- Modal -------- */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex; align-items: flex-end;
+    z-index: 100;
+  }
+  .modal {
+    width: 100%;
+    background: var(--bg);
+    border-radius: 16px 16px 0 0;
+    max-height: 90vh; overflow-y: auto;
+    padding-bottom: env(safe-area-inset-bottom);
+    animation: slideUp 0.25s ease-out;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 0.5px solid var(--separator);
+  }
+  .modal-header h2 { margin: 0; font-size: 17px; font-weight: 600; }
+  .modal-header button {
+    font-size: 17px; color: var(--accent);
+    min-width: 60px;
+  }
+  .modal-header button.bold { font-weight: 600; }
+  .modal-body { padding: 16px; }
+
+  /* -------- Icon + color grid for category editor -------- */
+  .grid-6 {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+  }
+  .grid-6 button {
+    aspect-ratio: 1;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    font-size: 22px;
+    background: var(--input-bg);
+  }
+  .grid-6 button.active {
+    outline: 2px solid var(--accent);
+  }
+  .swatch {
+    aspect-ratio: 1;
+    border-radius: 50%;
+  }
+  .swatch.active { outline: 2px solid var(--text); outline-offset: 2px; }
+
+  /* -------- Empty states -------- */
+  .empty {
+    text-align: center; padding: 60px 20px;
+    color: var(--text-secondary);
+  }
+  .empty .emoji { font-size: 48px; display: block; margin-bottom: 8px; }
+
+  /* -------- Toast -------- */
+  .toast {
+    position: fixed; top: calc(env(safe-area-inset-top) + 10px);
+    left: 50%; transform: translateX(-50%);
+    background: var(--success); color: #fff;
+    padding: 8px 16px; border-radius: 16px;
+    font-size: 13px; font-weight: 600;
+    z-index: 1000;
+    animation: toast 1.4s ease-out forwards;
+  }
+  @keyframes toast {
+    0% { opacity: 0; transform: translate(-50%, -10px); }
+    15%,75% { opacity: 1; transform: translate(-50%, 0); }
+    100% { opacity: 0; transform: translate(-50%, -10px); }
+  }
+
+  /* -------- Swipe-to-delete -------- */
+  .swipe-wrap { position: relative; overflow: hidden; }
+  .swipe-action {
+    position: absolute; top: 0; right: 0; bottom: 0;
+    background: var(--danger); color: #fff;
+    display: flex; align-items: center; padding: 0 22px;
+    font-weight: 600; transform: translateX(100%); transition: transform 0.15s;
+  }
+  .swipe-wrap.open .swipe-action { transform: translateX(0); }
+  .swipe-wrap.open > .expense-row { transform: translateX(-88px); }
+  .swipe-wrap > .expense-row { transition: transform 0.15s; }
+
+  /* Utility */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+</style>
+</head>
+<body>
+
+<main id="app">
+
+  <!-- ============ ADD TAB ============ -->
+  <section class="tab-panel active" data-panel="add">
+    <div class="header"><h1>Add Expense</h1></div>
+
+    <div class="section">
+      <div class="section-title">Amount</div>
+      <div class="card">
+        <input type="number" id="amount" class="big" inputmode="decimal" step="0.01" placeholder="0.00">
+        <div class="hint" id="currencyHint"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Category</div>
+      <div class="card">
+        <div class="chips" id="categoryChips"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Details</div>
+      <div class="card">
+        <div class="row"><span class="label">Date</span>
+          <input type="date" id="date" style="text-align:right;">
+        </div>
+        <div class="row"><span class="label">Note</span>
+          <input type="text" id="note" placeholder="Optional" style="text-align:right;">
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <button class="btn btn-primary" id="saveBtn" disabled>Save Expense</button>
+    </div>
+  </section>
+
+  <!-- ============ HISTORY TAB ============ -->
+  <section class="tab-panel" data-panel="history">
+    <div class="header">
+      <h1>History</h1>
+      <div class="actions">
+        <button class="icon-btn" id="exportBtn" title="Export CSV">⇪</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="card">
+        <div class="row">
+          <span class="label">Filter by category</span>
+          <select id="filterCategory"></select>
+        </div>
+        <div class="row">
+          <span class="label">From</span>
+          <input type="date" id="filterFrom" style="text-align:right;">
+        </div>
+        <div class="row">
+          <span class="label">To</span>
+          <input type="date" id="filterTo" style="text-align:right;">
+        </div>
+        <div class="row">
+          <button class="btn-link" id="clearFilters">Clear filters</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title" id="historyHeader">Entries</div>
+      <div class="card" id="historyList"></div>
+    </div>
+  </section>
+
+  <!-- ============ ANALYTICS TAB ============ -->
+  <section class="tab-panel" data-panel="analytics">
+    <div class="header"><h1>Analytics</h1></div>
+
+    <div class="month-switcher">
+      <button id="monthPrev">‹</button>
+      <h2 id="monthLabel"></h2>
+      <button id="monthNext">›</button>
+    </div>
+
+    <div class="section">
+      <div class="card">
+        <div class="big-total"><span class="sub">Total spent</span><span id="monthTotal">$0.00</span></div>
+        <div style="padding: 0 16px 16px;">
+          <div class="row" style="padding: 12px 0;">
+            <span class="label">Monthly budget</span>
+            <input type="number" id="budgetInput" inputmode="decimal" placeholder="0"
+                   style="text-align:right; max-width: 120px;">
+          </div>
+          <div id="budgetBar" style="display:none;">
+            <div class="progress-track"><div class="progress-fill" id="budgetFill"></div></div>
+            <div id="budgetWarning"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" id="pieSection">
+      <div class="card">
+        <div class="pie-wrap"><svg id="pieChart" viewBox="0 0 200 200"></svg></div>
+      </div>
+    </div>
+
+    <div class="section" id="breakdownSection">
+      <div class="section-title">Breakdown</div>
+      <div class="card" id="breakdownList"></div>
+    </div>
+  </section>
+
+  <!-- ============ CATEGORIES TAB ============ -->
+  <section class="tab-panel" data-panel="categories">
+    <div class="header">
+      <h1>Categories</h1>
+      <div class="actions">
+        <button class="icon-btn" id="addCategoryBtn">+</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="card" id="categoryList"></div>
+    </div>
+  </section>
+
+</main>
+
+<!-- Tab bar -->
+<nav class="tabbar">
+  <button data-tab="add" class="active"><span class="emoji">➕</span>Add</button>
+  <button data-tab="history"><span class="emoji">📋</span>History</button>
+  <button data-tab="analytics"><span class="emoji">📊</span>Analytics</button>
+  <button data-tab="categories"><span class="emoji">🏷️</span>Categories</button>
+</nav>
+
+<!-- Modal host -->
+<div id="modalHost"></div>
+
+<script>
+/* =========================================================================
+ * ExpenseTracker — single-file web app
+ * Data layer: localStorage. UI: vanilla DOM. No frameworks, no build step.
+ * ======================================================================= */
+
+// ---------- Data store ----------
+const STORAGE_KEY = 'expenseTracker.v1';
+const BUDGET_KEY = 'expenseTracker.budget';
+
+const DEFAULT_CATEGORIES = [
+  { id: 'c_food',      name: 'Food & Dining',       emoji: '🍽️', color: '#FF6B6B' },
+  { id: 'c_groceries', name: 'Groceries / Kitchen', emoji: '🛒', color: '#4ECDC4' },
+  { id: 'c_transport', name: 'Transportation',      emoji: '🚗', color: '#45B7D1' },
+  { id: 'c_bills',     name: 'Bills & Utilities',   emoji: '⚡', color: '#FFA07A' },
+  { id: 'c_rent',      name: 'Rent',                emoji: '🏠', color: '#8E7CC3' },
+  { id: 'c_fun',       name: 'Entertainment',       emoji: '🎮', color: '#F4A261' },
+  { id: 'c_shopping',  name: 'Shopping',            emoji: '🛍️', color: '#E76F51' },
+  { id: 'c_health',    name: 'Health & Medical',    emoji: '💊', color: '#2A9D8F' },
+  { id: 'c_education', name: 'Education',           emoji: '📚', color: '#264653' },
+  { id: 'c_travel',    name: 'Travel',              emoji: '✈️', color: '#06AED5' },
+  { id: 'c_charity',   name: 'Donations / Charity', emoji: '❤️', color: '#E63946' },
+  { id: 'c_personal',  name: 'Personal Expenses',   emoji: '👤', color: '#9D4EDD' },
+  { id: 'c_misc',      name: 'Miscellaneous',       emoji: '📌', color: '#6C757D' },
+];
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return { categories: DEFAULT_CATEGORIES.slice(), expenses: [] };
+}
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+let state = loadState();
+
+// ---------- Formatting ----------
+const locale = navigator.language || 'en-US';
+let currency = 'USD';
+try {
+  // Best-effort detect of local currency from locale.
+  const parts = new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD' })
+    .formatToParts(0);
+  // No direct way to get default; leave USD unless we have a better hint.
+  // Try to use Intl.Locale for region-based currency guess.
+  const region = new Intl.Locale(locale).region;
+  const regionCurrency = {
+    US:'USD',GB:'GBP',EU:'EUR',DE:'EUR',FR:'EUR',ES:'EUR',IT:'EUR',IE:'EUR',NL:'EUR',
+    IN:'INR',PK:'PKR',BD:'BDT',LK:'LKR',AE:'AED',SA:'SAR',
+    CA:'CAD',AU:'AUD',NZ:'NZD',JP:'JPY',CN:'CNY',KR:'KRW',SG:'SGD',HK:'HKD',
+    MX:'MXN',BR:'BRL',AR:'ARS',ZA:'ZAR',CH:'CHF',SE:'SEK',NO:'NOK',DK:'DKK',
+    TR:'TRY',RU:'RUB',PL:'PLN',
+  };
+  if (region && regionCurrency[region]) currency = regionCurrency[region];
+} catch {}
+
+const money = v => new Intl.NumberFormat(locale, {
+  style: 'currency', currency, maximumFractionDigits: 2,
+}).format(v || 0);
+
+// ---------- Tab switching ----------
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(el => {
+    el.classList.toggle('active', el.dataset.panel === name);
+  });
+  document.querySelectorAll('.tabbar button').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === name);
+  });
+  // Re-render the tab we're entering — keeps everything live.
+  if (name === 'history') renderHistory();
+  if (name === 'analytics') renderAnalytics();
+  if (name === 'categories') renderCategories();
+  if (name === 'add') renderAddTab();
+}
+document.querySelectorAll('.tabbar button').forEach(b => {
+  b.addEventListener('click', () => switchTab(b.dataset.tab));
+});
+
+// ---------- ADD tab ----------
+const amountInput = document.getElementById('amount');
+const dateInput = document.getElementById('date');
+const noteInput = document.getElementById('note');
+const chipsEl = document.getElementById('categoryChips');
+const saveBtn = document.getElementById('saveBtn');
+document.getElementById('currencyHint').textContent = 'Amount in ' + currency;
+
+let selectedCategoryId = state.categories[0]?.id || null;
+
+function renderAddTab() {
+  // Default date = today unless user already touched it this session.
+  if (!dateInput.value) dateInput.value = todayIso();
+  // Re-draw category chips every time in case user added one.
+  chipsEl.innerHTML = '';
+  if (!state.categories.find(c => c.id === selectedCategoryId)) {
+    selectedCategoryId = state.categories[0]?.id || null;
+  }
+  state.categories.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'chip' + (c.id === selectedCategoryId ? ' active' : '');
+    btn.style.color = c.color;
+    btn.style.background = hexToRgba(c.color, 0.15);
+    btn.innerHTML = `<span class="emoji">${c.emoji}</span><span>${escapeHtml(c.name)}</span>`;
+    btn.onclick = () => { selectedCategoryId = c.id; renderAddTab(); updateSaveEnabled(); };
+    chipsEl.appendChild(btn);
+  });
+  updateSaveEnabled();
+}
+
+function updateSaveEnabled() {
+  const valid = parseFloat(amountInput.value) > 0 && selectedCategoryId;
+  saveBtn.disabled = !valid;
+}
+amountInput.addEventListener('input', updateSaveEnabled);
+
+saveBtn.addEventListener('click', () => {
+  const amount = parseFloat(amountInput.value);
+  if (!(amount > 0) || !selectedCategoryId) return;
+  state.expenses.push({
+    id: 'e_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+    amount,
+    categoryId: selectedCategoryId,
+    note: noteInput.value.trim(),
+    date: dateInput.value || todayIso(),
+  });
+  saveState();
+  showToast('Saved ✓');
+  amountInput.value = '';
+  noteInput.value = '';
+  dateInput.value = todayIso();
+  updateSaveEnabled();
+  amountInput.focus();
+});
+
+// ---------- HISTORY tab ----------
+const historyList = document.getElementById('historyList');
+const historyHeader = document.getElementById('historyHeader');
+const filterCategory = document.getElementById('filterCategory');
+const filterFrom = document.getElementById('filterFrom');
+const filterTo = document.getElementById('filterTo');
+
+document.getElementById('clearFilters').onclick = () => {
+  filterCategory.value = '';
+  filterFrom.value = '';
+  filterTo.value = '';
+  renderHistory();
+};
+[filterCategory, filterFrom, filterTo].forEach(el =>
+  el.addEventListener('change', renderHistory));
+
+function renderHistory() {
+  // Populate category filter (preserve current selection).
+  const current = filterCategory.value;
+  filterCategory.innerHTML = '<option value="">All</option>' +
+    state.categories.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+  filterCategory.value = current;
+
+  const filtered = state.expenses
+    .filter(e => !filterCategory.value || e.categoryId === filterCategory.value)
+    .filter(e => !filterFrom.value || e.date >= filterFrom.value)
+    .filter(e => !filterTo.value || e.date <= filterTo.value)
+    .sort((a, b) => (b.date + b.id).localeCompare(a.date + a.id));
+
+  const total = filtered.reduce((s, e) => s + e.amount, 0);
+  historyHeader.innerHTML = `Entries (${filtered.length}) · <span style="color:var(--text-secondary);text-transform:none;letter-spacing:0;">${money(total)}</span>`;
+
+  if (filtered.length === 0) {
+    historyList.innerHTML = `<div class="empty"><span class="emoji">📭</span>No expenses match your filters.</div>`;
+    return;
+  }
+  historyList.innerHTML = filtered.map(e => {
+    const cat = state.categories.find(c => c.id === e.categoryId) ||
+                { name: 'Uncategorized', emoji: '❔', color: '#8e8e93' };
+    return `
+      <div class="swipe-wrap" data-id="${e.id}">
+        <div class="expense-row" data-id="${e.id}">
+          <div class="expense-icon" style="background:${hexToRgba(cat.color,0.18)};color:${cat.color};">${cat.emoji}</div>
+          <div class="expense-main">
+            <div class="title">${escapeHtml(cat.name)}</div>
+            <div class="sub">${escapeHtml(e.note) || fmtDate(e.date)}${e.note ? ' · ' + fmtDate(e.date) : ''}</div>
+          </div>
+          <div class="expense-amount">${money(e.amount)}</div>
+        </div>
+        <div class="swipe-action" data-delete="${e.id}">Delete</div>
+      </div>
+    `;
+  }).join('');
+
+  // Tap row = edit. Long press or swipe-left = delete.
+  historyList.querySelectorAll('.expense-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const wrap = row.closest('.swipe-wrap');
+      if (wrap.classList.contains('open')) { wrap.classList.remove('open'); return; }
+      editExpense(row.dataset.id);
+    });
+    attachSwipe(row.closest('.swipe-wrap'));
+  });
+  historyList.querySelectorAll('[data-delete]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.delete;
+      state.expenses = state.expenses.filter(x => x.id !== id);
+      saveState();
+      renderHistory();
+    });
+  });
+}
+
+// Simple swipe-to-reveal-delete handler (touch + mouse).
+function attachSwipe(wrap) {
+  let startX = null, dx = 0;
+  const row = wrap.querySelector('.expense-row');
+  const onStart = e => {
+    const pt = e.touches ? e.touches[0] : e;
+    startX = pt.clientX; dx = 0;
+  };
+  const onMove = e => {
+    if (startX === null) return;
+    const pt = e.touches ? e.touches[0] : e;
+    dx = pt.clientX - startX;
+    if (dx < 0 && dx > -88) row.style.transform = `translateX(${dx}px)`;
+  };
+  const onEnd = () => {
+    row.style.transform = '';
+    if (dx < -40) wrap.classList.add('open');
+    else wrap.classList.remove('open');
+    startX = null; dx = 0;
+  };
+  row.addEventListener('touchstart', onStart, { passive: true });
+  row.addEventListener('touchmove', onMove, { passive: true });
+  row.addEventListener('touchend', onEnd);
+}
+
+// Edit = modal reusing AddExpense layout.
+function editExpense(id) {
+  const e = state.expenses.find(x => x.id === id);
+  if (!e) return;
+  openModal({
+    title: 'Edit Expense',
+    rightBtn: { label: 'Save', bold: true },
+    render: (body) => {
+      body.innerHTML = `
+        <div class="section" style="margin:0 0 16px;">
+          <div class="card">
+            <input type="number" id="eAmount" class="big" step="0.01" inputmode="decimal" value="${e.amount}">
+          </div>
+        </div>
+        <div class="section" style="margin:0 0 16px;">
+          <div class="section-title">Category</div>
+          <div class="card">
+            <div class="chips" id="eChips"></div>
+          </div>
+        </div>
+        <div class="section" style="margin:0;">
+          <div class="card">
+            <div class="row"><span class="label">Date</span>
+              <input type="date" id="eDate" value="${e.date}" style="text-align:right;"></div>
+            <div class="row"><span class="label">Note</span>
+              <input type="text" id="eNote" value="${escapeHtml(e.note)}" placeholder="Optional" style="text-align:right;"></div>
+            <div class="row" style="justify-content:center;"><button class="btn btn-danger" id="eDelete">Delete</button></div>
+          </div>
+        </div>`;
+      let catId = e.categoryId;
+      const chips = body.querySelector('#eChips');
+      const renderChips = () => {
+        chips.innerHTML = '';
+        state.categories.forEach(c => {
+          const b = document.createElement('button');
+          b.className = 'chip' + (c.id === catId ? ' active' : '');
+          b.style.color = c.color;
+          b.style.background = hexToRgba(c.color, 0.15);
+          b.innerHTML = `<span class="emoji">${c.emoji}</span><span>${escapeHtml(c.name)}</span>`;
+          b.onclick = () => { catId = c.id; renderChips(); };
+          chips.appendChild(b);
+        });
+      };
+      renderChips();
+      body.querySelector('#eDelete').onclick = () => {
+        state.expenses = state.expenses.filter(x => x.id !== id);
+        saveState();
+        closeModal();
+        renderHistory();
+      };
+      return () => { // save handler
+        const amt = parseFloat(body.querySelector('#eAmount').value);
+        if (!(amt > 0)) return false;
+        e.amount = amt;
+        e.categoryId = catId;
+        e.date = body.querySelector('#eDate').value || todayIso();
+        e.note = body.querySelector('#eNote').value.trim();
+        saveState();
+        renderHistory();
+        return true;
+      };
+    },
+  });
+}
+
+// ---------- CSV export ----------
+document.getElementById('exportBtn').onclick = () => {
+  if (state.expenses.length === 0) { showToast('No data to export'); return; }
+  const rows = [['Date','Category','Amount','Note']];
+  state.expenses.forEach(e => {
+    const cat = state.categories.find(c => c.id === e.categoryId);
+    rows.push([e.date, cat?.name || 'Uncategorized', e.amount.toFixed(2), e.note]);
+  });
+  const csv = rows.map(r => r.map(f => {
+    const s = String(f);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `expenses-${todayIso()}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+};
+
+// ---------- ANALYTICS tab ----------
+let viewedMonth = new Date(); viewedMonth.setDate(1);
+document.getElementById('monthPrev').onclick = () => shiftMonth(-1);
+document.getElementById('monthNext').onclick = () => shiftMonth(1);
+
+function shiftMonth(delta) {
+  const d = new Date(viewedMonth);
+  d.setMonth(d.getMonth() + delta);
+  viewedMonth = d;
+  renderAnalytics();
+}
+
+function renderAnalytics() {
+  // Month label + forward button disabled state.
+  document.getElementById('monthLabel').textContent =
+    viewedMonth.toLocaleString(locale, { month: 'long', year: 'numeric' });
+  const now = new Date();
+  const isCurrent = viewedMonth.getFullYear() === now.getFullYear() &&
+                    viewedMonth.getMonth() === now.getMonth();
+  document.getElementById('monthNext').disabled = isCurrent;
+
+  // Filter to month.
+  const y = viewedMonth.getFullYear(), m = viewedMonth.getMonth();
+  const inMonth = state.expenses.filter(e => {
+    const d = new Date(e.date);
+    return d.getFullYear() === y && d.getMonth() === m;
+  });
+  const total = inMonth.reduce((s, e) => s + e.amount, 0);
+  document.getElementById('monthTotal').textContent = money(total);
+
+  // Budget + progress bar.
+  const budgetInput = document.getElementById('budgetInput');
+  const storedBudget = parseFloat(localStorage.getItem(BUDGET_KEY)) || 0;
+  if (document.activeElement !== budgetInput) {
+    budgetInput.value = storedBudget > 0 ? storedBudget : '';
+  }
+  budgetInput.oninput = () => {
+    const v = parseFloat(budgetInput.value);
+    if (v > 0) localStorage.setItem(BUDGET_KEY, v);
+    else localStorage.removeItem(BUDGET_KEY);
+    updateBudgetBar(total);
+  };
+  updateBudgetBar(total);
+
+  // Breakdown + pie.
+  const buckets = {};
+  inMonth.forEach(e => {
+    const cat = state.categories.find(c => c.id === e.categoryId) ||
+                { id: '_uncat', name: 'Uncategorized', color: '#8e8e93', emoji: '❔' };
+    if (!buckets[cat.id]) buckets[cat.id] = { cat, total: 0 };
+    buckets[cat.id].total += e.amount;
+  });
+  const slices = Object.values(buckets).sort((a, b) => b.total - a.total);
+
+  const pieSection = document.getElementById('pieSection');
+  const breakdownSection = document.getElementById('breakdownSection');
+  if (slices.length === 0) {
+    pieSection.style.display = 'none';
+    breakdownSection.innerHTML = `<div class="empty"><span class="emoji">📊</span>No spending in this month yet.</div>`;
+    return;
+  }
+  pieSection.style.display = '';
+  drawPie(slices, total);
+
+  breakdownSection.innerHTML = `
+    <div class="section-title">Breakdown</div>
+    <div class="card">
+      ${slices.map(s => `
+        <div class="expense-row">
+          <div class="expense-icon" style="background:${hexToRgba(s.cat.color,0.18)};color:${s.cat.color};">${s.cat.emoji}</div>
+          <div class="expense-main">
+            <div class="title">${escapeHtml(s.cat.name)}</div>
+            <div class="sub">${((s.total/total)*100).toFixed(0)}%</div>
+          </div>
+          <div class="expense-amount">${money(s.total)}</div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function updateBudgetBar(total) {
+  const budget = parseFloat(localStorage.getItem(BUDGET_KEY)) || 0;
+  const bar = document.getElementById('budgetBar');
+  const fill = document.getElementById('budgetFill');
+  const warn = document.getElementById('budgetWarning');
+  if (budget <= 0) { bar.style.display = 'none'; return; }
+  bar.style.display = '';
+  const ratio = Math.min(total / budget, 1);
+  fill.style.width = (ratio * 100) + '%';
+  fill.style.background = ratio >= 1 ? 'var(--danger)' :
+                          ratio >= 0.8 ? 'var(--warning)' : 'var(--success)';
+  warn.innerHTML = '';
+  if (ratio >= 1) {
+    warn.innerHTML = `<div class="warning-banner red">⚠️ Over budget — ${money(total - budget)} above your limit</div>`;
+  } else if (ratio >= 0.8) {
+    warn.innerHTML = `<div class="warning-banner orange">Close to your limit — ${money(budget - total)} left</div>`;
+  }
+}
+
+// SVG pie. For a single slice we draw a full circle; else arc segments.
+function drawPie(slices, total) {
+  const svg = document.getElementById('pieChart');
+  const cx = 100, cy = 100, r = 80, rInner = 44;
+  let startAngle = -Math.PI / 2; // start at top
+  let paths = '';
+  if (slices.length === 1) {
+    paths = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${slices[0].cat.color}"/>
+             <circle cx="${cx}" cy="${cy}" r="${rInner}" fill="var(--card)"/>`;
+  } else {
+    slices.forEach(s => {
+      const frac = s.total / total;
+      const angle = frac * Math.PI * 2;
+      const endAngle = startAngle + angle;
+      const large = angle > Math.PI ? 1 : 0;
+      const x1 = cx + r * Math.cos(startAngle);
+      const y1 = cy + r * Math.sin(startAngle);
+      const x2 = cx + r * Math.cos(endAngle);
+      const y2 = cy + r * Math.sin(endAngle);
+      const xi1 = cx + rInner * Math.cos(endAngle);
+      const yi1 = cy + rInner * Math.sin(endAngle);
+      const xi2 = cx + rInner * Math.cos(startAngle);
+      const yi2 = cy + rInner * Math.sin(startAngle);
+      paths += `<path d="M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} L ${xi1} ${yi1} A ${rInner} ${rInner} 0 ${large} 0 ${xi2} ${yi2} Z" fill="${s.cat.color}" stroke="var(--card)" stroke-width="1.5"/>`;
+      startAngle = endAngle;
+    });
+  }
+  svg.innerHTML = paths + `<text x="100" y="96" text-anchor="middle" font-size="11" fill="var(--text-secondary)" font-family="-apple-system">Total</text><text x="100" y="116" text-anchor="middle" font-size="16" font-weight="600" fill="var(--text)" font-family="-apple-system">${escapeHtml(money(total))}</text>`;
+}
+
+// ---------- CATEGORIES tab ----------
+document.getElementById('addCategoryBtn').onclick = () => openCategoryEditor(null);
+
+function renderCategories() {
+  const list = document.getElementById('categoryList');
+  list.innerHTML = state.categories.map(c => {
+    const count = state.expenses.filter(e => e.categoryId === c.id).length;
+    return `
+      <div class="expense-row" data-id="${c.id}">
+        <div class="expense-icon" style="background:${hexToRgba(c.color,0.18)};color:${c.color};">${c.emoji}</div>
+        <div class="expense-main">
+          <div class="title">${escapeHtml(c.name)}</div>
+          <div class="sub">${count} expense${count===1?'':'s'}</div>
+        </div>
+        <div style="color:var(--text-tertiary);">›</div>
+      </div>`;
+  }).join('');
+  list.querySelectorAll('.expense-row').forEach(row =>
+    row.addEventListener('click', () => openCategoryEditor(row.dataset.id))
+  );
+}
+
+const EMOJI_OPTIONS = ['🍽️','🛒','🚗','⚡','🏠','🎮','🛍️','💊','📚','✈️','❤️','👤','📌',
+                       '☕','🍕','🍺','💼','📱','💻','🎬','🎵','🏋️','🚕','⛽','🎁','💰','🐶','🧾'];
+const COLOR_OPTIONS = ['#FF6B6B','#4ECDC4','#45B7D1','#FFA07A','#8E7CC3','#F4A261',
+                       '#E76F51','#2A9D8F','#264653','#06AED5','#E63946','#9D4EDD',
+                       '#6C757D','#20C997','#FD7E14'];
+
+function openCategoryEditor(id) {
+  const existing = id ? state.categories.find(c => c.id === id) : null;
+  let name = existing?.name || '';
+  let emoji = existing?.emoji || '🏷️';
+  let color = existing?.color || COLOR_OPTIONS[1];
+
+  openModal({
+    title: existing ? 'Edit Category' : 'New Category',
+    rightBtn: { label: 'Save', bold: true },
+    render: (body) => {
+      body.innerHTML = `
+        <div class="section" style="margin:0 0 16px;">
+          <div class="section-title">Name</div>
+          <div class="card"><div class="row"><input type="text" id="cName" placeholder="e.g. Coffee" value="${escapeHtml(name)}"></div></div>
+        </div>
+        <div class="section" style="margin:0 0 16px;">
+          <div class="section-title">Emoji</div>
+          <div class="card" style="padding:10px;"><div class="grid-6" id="emojiGrid"></div></div>
+        </div>
+        <div class="section" style="margin:0 0 16px;">
+          <div class="section-title">Color</div>
+          <div class="card" style="padding:10px;"><div class="grid-6" id="colorGrid"></div></div>
+        </div>
+        ${existing ? `<div class="section" style="margin:0;"><button class="btn btn-danger" id="cDelete">Delete Category</button></div>` : ''}
+      `;
+      const emojiGrid = body.querySelector('#emojiGrid');
+      EMOJI_OPTIONS.forEach(e => {
+        const b = document.createElement('button');
+        b.textContent = e;
+        if (e === emoji) b.classList.add('active');
+        b.onclick = () => { emoji = e; emojiGrid.querySelectorAll('button').forEach(x=>x.classList.remove('active')); b.classList.add('active'); };
+        emojiGrid.appendChild(b);
+      });
+      const colorGrid = body.querySelector('#colorGrid');
+      COLOR_OPTIONS.forEach(c => {
+        const b = document.createElement('button');
+        b.className = 'swatch' + (c === color ? ' active' : '');
+        b.style.background = c;
+        b.onclick = () => { color = c; colorGrid.querySelectorAll('button').forEach(x=>x.classList.remove('active')); b.classList.add('active'); };
+        colorGrid.appendChild(b);
+      });
+      if (existing) body.querySelector('#cDelete').onclick = () => {
+        // Deleting a category unassigns its expenses (they show "Uncategorized").
+        state.expenses.forEach(e => { if (e.categoryId === existing.id) e.categoryId = null; });
+        state.categories = state.categories.filter(c => c.id !== existing.id);
+        saveState();
+        closeModal();
+        renderCategories();
+      };
+      body.querySelector('#cName').focus();
+      return () => {
+        const newName = body.querySelector('#cName').value.trim();
+        if (!newName) return false;
+        if (existing) {
+          existing.name = newName; existing.emoji = emoji; existing.color = color;
+        } else {
+          state.categories.push({
+            id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2,5),
+            name: newName, emoji, color,
+          });
+        }
+        saveState();
+        renderCategories();
+        return true;
+      };
+    },
+  });
+}
+
+// ---------- Modal plumbing ----------
+let currentSave = null;
+function openModal({ title, rightBtn, render }) {
+  const host = document.getElementById('modalHost');
+  host.innerHTML = `
+    <div class="modal-backdrop" id="modalBackdrop">
+      <div class="modal">
+        <div class="modal-header">
+          <button id="modalCancel">Cancel</button>
+          <h2>${escapeHtml(title)}</h2>
+          <button id="modalSave" class="${rightBtn.bold ? 'bold' : ''}">${escapeHtml(rightBtn.label)}</button>
+        </div>
+        <div class="modal-body"></div>
+      </div>
+    </div>`;
+  const body = host.querySelector('.modal-body');
+  currentSave = render(body);
+  host.querySelector('#modalCancel').onclick = closeModal;
+  host.querySelector('#modalSave').onclick = () => {
+    const ok = currentSave ? currentSave() : true;
+    if (ok !== false) closeModal();
+  };
+  host.querySelector('#modalBackdrop').addEventListener('click', (e) => {
+    if (e.target.id === 'modalBackdrop') closeModal();
+  });
+}
+function closeModal() {
+  document.getElementById('modalHost').innerHTML = '';
+  currentSave = null;
+}
+
+// ---------- Helpers ----------
+function todayIso() {
+  const d = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
+function fmtDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' });
+}
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+function hexToRgba(hex, a) {
+  const h = hex.replace('#','');
+  const n = parseInt(h, 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  return `rgba(${r},${g},${b},${a})`;
+}
+function showToast(msg) {
+  const el = document.createElement('div');
+  el.className = 'toast'; el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1500);
+}
+
+// ---------- Boot ----------
+renderAddTab();
+
+// Register a trivial service worker so the app installs cleanly as a PWA
+// (some browsers require one for "Add to Home Screen" to stick).
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
