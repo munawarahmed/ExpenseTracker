@@ -1,6 +1,6 @@
 # ExpenseTracker
 
-A clean, fast, native iPhone app for personal expense tracking.
+A clean, fast, native iPhone/Android app for personal expense tracking.
 
 Built with **SwiftUI**, **SwiftData**, and **Swift Charts** — Apple's newest, most modern stack.
 
