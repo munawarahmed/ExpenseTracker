@@ -136,7 +136,15 @@
     font-size: 28px; font-weight: 600; color: var(--text-secondary);
     padding-top: 14px;
   }
-  .amount-wrap input { width: auto; max-width: 70%; }
+  .amount-wrap input { width: auto; max-width: 60%; }
+  .amount-wrap .cur-select {
+    background: var(--input-bg);
+    border-radius: 8px;
+    padding: 6px 8px;
+    font-size: 13px; font-weight: 600;
+    color: var(--text);
+    align-self: center;
+  }
   .hint {
     text-align: center; color: var(--text-secondary);
     font-size: 13px; padding-bottom: 14px;
@@ -200,12 +208,18 @@
   }
   .chip:active { transform: scale(0.96); }
   /* Active chip: solid fill in the category's color so selection is unmistakable. */
+  /* Active chip: bg and border pick up the category color from the inline
+     `style="color: <cat.color>"` on the button (via currentColor). Don't
+     overwrite `color` on the button itself, or currentColor collapses to
+     white and the pill disappears. Just force the child text/emoji white. */
   .chip.active {
-    color: #fff !important;
     background: currentColor !important;
     border-color: currentColor;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    transform: translateY(-1px);
   }
-  .chip.active > span { color: #fff; }
+  .chip.active > span,
+  .chip.active .emoji { color: #fff !important; }
   .chip .emoji { font-size: 16px; }
 
   /* -------- Expense list rows -------- */
@@ -428,6 +442,134 @@
   .swipe-wrap.open > .expense-row { transform: translateX(-88px); }
   .swipe-wrap > .expense-row { transition: transform 0.15s; }
 
+  /* -------- Insights tab -------- */
+  /* Horizontal pill-group for quick date ranges (Day / Week / Month / …). */
+  .range-picker {
+    display: flex; gap: 6px;
+    background: var(--input-bg);
+    padding: 4px; border-radius: 12px;
+  }
+  .range-picker button {
+    flex: 1;
+    padding: 8px 4px;
+    border-radius: 9px;
+    font-size: 13px; font-weight: 500;
+    color: var(--text-secondary);
+    transition: all 0.15s;
+  }
+  .range-picker button.active {
+    background: var(--card);
+    color: var(--text);
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .range-label {
+    text-align: center; font-size: 12px; color: var(--text-secondary);
+    margin-top: 8px;
+  }
+
+  /* 50/30/20 bucket bars: one row per bucket showing actual vs target share. */
+  .bucket-row { padding: 14px 16px; border-bottom: 0.5px solid var(--separator); }
+  .bucket-row:last-child { border-bottom: none; }
+  .bucket-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 6px;
+  }
+  .bucket-name { font-weight: 600; font-size: 15px; }
+  .bucket-target {
+    font-size: 11px; color: var(--text-secondary);
+    letter-spacing: 0.3px; text-transform: uppercase;
+    margin-left: 6px;
+  }
+  .bucket-totals { font-variant-numeric: tabular-nums; font-size: 14px; }
+  .bucket-totals .spent { font-weight: 600; }
+  .bucket-totals .of { color: var(--text-secondary); }
+  .bucket-bar {
+    height: 8px; background: var(--input-bg); border-radius: 4px;
+    overflow: hidden; position: relative;
+  }
+  /* Dotted marker at the bucket's target % to show "here's your goal line". */
+  .bucket-bar .target-line {
+    position: absolute; top: 0; bottom: 0; width: 2px;
+    background: rgba(0,0,0,0.25);
+  }
+  @media (prefers-color-scheme: dark) {
+    .bucket-bar .target-line { background: rgba(255,255,255,0.4); }
+  }
+  .bucket-fill {
+    height: 100%; border-radius: 4px; transition: width 0.3s;
+  }
+  .bucket-hint {
+    font-size: 12px; color: var(--text-secondary);
+    margin-top: 6px;
+  }
+
+  /* Advisor cards: one per insight. Left-border color hints at severity. */
+  .insight-card {
+    background: var(--card); border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    border-left: 4px solid var(--accent);
+  }
+  .insight-card.warn { border-left-color: var(--warning); }
+  .insight-card.danger { border-left-color: var(--danger); }
+  .insight-card.ok { border-left-color: var(--success); }
+  .insight-card .title {
+    font-size: 14px; font-weight: 600; margin-bottom: 4px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .insight-card .body {
+    font-size: 14px; line-height: 1.45; color: var(--text);
+  }
+  .insight-card .body strong { font-weight: 600; }
+  .insight-card .meta {
+    font-size: 12px; color: var(--text-secondary); margin-top: 6px;
+  }
+  .insight-card ul { margin: 6px 0 0; padding-left: 20px; font-size: 13px; }
+  .insight-card li { margin-bottom: 2px; }
+
+  /* Tag pill used on category list + chips to show bucket */
+  .bucket-tag {
+    display: inline-block;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.3px;
+    padding: 2px 6px; border-radius: 6px;
+    margin-left: 6px;
+    vertical-align: middle;
+    text-transform: uppercase;
+  }
+  .bucket-tag.need { color: #4ECDC4; background: rgba(78,205,196,0.18); }
+  .bucket-tag.want { color: #FFA07A; background: rgba(255,160,122,0.18); }
+  .bucket-tag.goal { color: #34C759; background: rgba(52,199,89,0.18); }
+
+  /* Three-way segmented picker for Needs/Wants/Goals in the category editor. */
+  .bucket-picker {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  }
+  .bucket-chip {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 10px 8px; border-radius: 10px;
+    font-size: 13px; font-weight: 600;
+    transition: transform 0.1s;
+  }
+  .bucket-chip .emoji { font-size: 14px; }
+  .bucket-chip.active {
+    background: currentColor !important;
+  }
+  .bucket-chip.active > span:not(.emoji) { color: #fff; }
+  .bucket-chip.active .emoji { filter: brightness(1.1); }
+
+  /* Print-only CSS — used when user taps "Export PDF". We strip chrome
+     (tab bar, headers) and lay out purely for A4 / letter paper. */
+  @media print {
+    .tabbar, .header .actions, .range-picker, #modalHost { display: none !important; }
+    body { background: #fff !important; color: #000 !important; }
+    .tab-panel { display: block !important; break-inside: avoid; }
+    .tab-panel[data-panel="insights"] { display: block !important; }
+    .tab-panel:not([data-panel="insights"]) { display: none !important; }
+    .card { box-shadow: none; border: 1px solid #ddd; }
+    .insight-card { page-break-inside: avoid; }
+  }
+
   /* Utility */
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
@@ -468,8 +610,9 @@
       <div class="section-title">Amount</div>
       <div class="card">
         <div class="amount-wrap">
-          <span class="amount-prefix">Rs</span>
+          <span class="amount-prefix" id="amountPrefix">Rs</span>
           <input type="number" id="amount" class="big" inputmode="decimal" step="1" placeholder="0">
+          <select id="amountCurrency" class="cur-select" aria-label="Currency"></select>
         </div>
         <div class="hint" id="currencyHint">Pakistani Rupee</div>
       </div>
@@ -510,6 +653,17 @@
     </div>
 
     <div class="section">
+      <div class="range-picker" id="historyRange">
+        <button data-range="day">Day</button>
+        <button data-range="week">Week</button>
+        <button data-range="month" class="active">Month</button>
+        <button data-range="year">Year</button>
+        <button data-range="all">All</button>
+        <button data-range="custom">Custom</button>
+      </div>
+    </div>
+
+    <div class="section">
       <div class="card">
         <div class="row">
           <span class="label">Filter by category</span>
@@ -545,7 +699,23 @@
       </div>
     </div>
 
-    <div class="month-switcher">
+    <div class="section">
+      <div class="range-picker" id="analyticsRange">
+        <button data-range="day">Day</button>
+        <button data-range="week">Week</button>
+        <button data-range="month" class="active">Month</button>
+        <button data-range="year">Year</button>
+        <button data-range="custom">Custom</button>
+      </div>
+      <div class="card" id="analyticsCustomRow" style="display:none; margin-top:8px;">
+        <div class="row"><span class="label">From</span>
+          <input type="date" id="analyticsCustomFrom" style="text-align:right;"></div>
+        <div class="row"><span class="label">To</span>
+          <input type="date" id="analyticsCustomTo" style="text-align:right;"></div>
+      </div>
+    </div>
+
+    <div class="month-switcher" id="monthSwitcher">
       <button id="monthPrev">‹</button>
       <h2 id="monthLabel"></h2>
       <button id="monthNext">›</button>
@@ -578,6 +748,87 @@
       <div class="section-title">Breakdown</div>
       <div class="card" id="breakdownList"></div>
     </div>
+
+    <!-- Advisor — same logic as Insights tab, scoped to whatever range is
+         selected above. Gives MoM comparison + tips inline with the report. -->
+    <div class="section" id="analyticsAdvisorSection">
+      <div class="section-title">Advice for this report</div>
+      <div id="analyticsAdvisor"></div>
+    </div>
+  </section>
+
+  <!-- ============ INSIGHTS TAB ============ -->
+  <!-- 50/30/20 framework + rule-based financial advisor. All calculations run
+       locally off the user's expenses and income. -->
+  <section class="tab-panel" data-panel="insights">
+    <div class="header">
+      <div>
+        <div class="eyebrow">Your</div>
+        <h1>Insights</h1>
+      </div>
+      <div class="actions">
+        <button class="icon-btn" id="exportPdfBtn" title="Export PDF report">📄</button>
+        <button class="icon-btn" data-open-settings title="Settings">⚙︎</button>
+      </div>
+    </div>
+
+    <!-- Date range selector: quick buttons + optional custom range -->
+    <div class="section">
+      <div class="range-picker" id="insightsRange">
+        <button data-range="day">Day</button>
+        <button data-range="week">Week</button>
+        <button data-range="month" class="active">Month</button>
+        <button data-range="year">Year</button>
+        <button data-range="custom">Custom</button>
+      </div>
+      <div class="card" id="insightsCustomRow" style="display:none; margin-top:8px;">
+        <div class="row"><span class="label">From</span>
+          <input type="date" id="insightsCustomFrom" style="text-align:right;"></div>
+        <div class="row"><span class="label">To</span>
+          <input type="date" id="insightsCustomTo" style="text-align:right;"></div>
+      </div>
+      <div class="range-label" id="insightsRangeLabel"></div>
+    </div>
+
+    <!-- Income card: user can tap "Set" to enter monthly income -->
+    <div class="section">
+      <div class="card">
+        <div class="row">
+          <span class="label">Monthly income</span>
+          <div style="display:flex; align-items:center; gap:4px;">
+            <span style="color:var(--text-secondary);">Rs</span>
+            <input type="number" id="insightsIncome" inputmode="decimal" placeholder="0"
+                   style="text-align:right; max-width: 140px; font-weight:600;">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 50/30/20 framework -->
+    <div class="section" id="bucketsSection">
+      <div class="section-title">50 / 30 / 20 Framework</div>
+      <div class="card" id="bucketsCard"></div>
+    </div>
+
+    <!-- Line items inside each bucket (add/edit/delete) -->
+    <div class="section" id="needsSection">
+      <div class="section-title">Needs · <span id="needsTotalLabel">Rs 0</span></div>
+      <div class="card" id="needsList"></div>
+    </div>
+    <div class="section" id="wantsSection">
+      <div class="section-title">Wants · <span id="wantsTotalLabel">Rs 0</span></div>
+      <div class="card" id="wantsList"></div>
+    </div>
+    <div class="section" id="goalsSection">
+      <div class="section-title">Goals · <span id="goalsTotalLabel">Rs 0</span></div>
+      <div class="card" id="goalsList"></div>
+    </div>
+
+    <!-- Advisor insights: burn rate, MoM changes, wealth gap, tips -->
+    <div class="section">
+      <div class="section-title">Financial Advisor</div>
+      <div id="advisorCards"></div>
+    </div>
   </section>
 
   <!-- ============ CATEGORIES TAB ============ -->
@@ -602,7 +853,8 @@
   <button data-tab="add" class="active"><span class="emoji">➕</span>Add</button>
   <button data-tab="history"><span class="emoji">📋</span>History</button>
   <button data-tab="analytics"><span class="emoji">📊</span>Analytics</button>
-  <button data-tab="categories"><span class="emoji">🏷️</span>Categories</button>
+  <button data-tab="insights"><span class="emoji">💡</span>Insights</button>
+  <button data-tab="categories"><span class="emoji">🏷️</span>More</button>
 </nav>
 
 <!-- Hidden file input used by the CSV-import flow. -->
@@ -620,22 +872,37 @@
 // ---------- Data store ----------
 const STORAGE_KEY = 'expenseTracker.v1';
 const BUDGET_KEY = 'expenseTracker.budget';
+const INCOME_KEY = 'expenseTracker.income';   // Monthly income → 50/30/20 targets
+const RATES_KEY  = 'expenseTracker.rates';    // Multi-currency → PKR rates
+// Buckets for the 50/30/20 framework. Target shares of income:
+//   need = 50% (essentials), want = 30% (lifestyle), goal = 20% (wealth building)
+const BUCKETS = [
+  { id: 'need', label: 'Needs', target: 0.5, color: '#4ECDC4',
+    hint: 'Rent, utilities, groceries, transport, health' },
+  { id: 'want', label: 'Wants', target: 0.3, color: '#FFA07A',
+    hint: 'Dining out, entertainment, shopping, travel' },
+  { id: 'goal', label: 'Goals', target: 0.2, color: '#34C759',
+    hint: 'Investments, emergency fund, charity, Hajj/Umrah' },
+];
 
 const DEFAULT_CATEGORIES = [
-  { id: 'c_food',       name: 'Food & Dining',       emoji: '🍽️', color: '#FF6B6B' },
-  { id: 'c_groceries',  name: 'Groceries / Kitchen', emoji: '🛒', color: '#4ECDC4' },
-  { id: 'c_transport',  name: 'Transportation',      emoji: '🚗', color: '#45B7D1' },
-  { id: 'c_bills',      name: 'Bills & Utilities',   emoji: '⚡', color: '#FFA07A' },
-  { id: 'c_rent',       name: 'Rent',                emoji: '🏠', color: '#8E7CC3' },
-  { id: 'c_fun',        name: 'Entertainment',       emoji: '🎮', color: '#F4A261' },
-  { id: 'c_shopping',   name: 'Shopping',            emoji: '🛍️', color: '#E76F51' },
-  { id: 'c_health',     name: 'Health & Medical',    emoji: '💊', color: '#2A9D8F' },
-  { id: 'c_education',  name: 'Education',           emoji: '📚', color: '#264653' },
-  { id: 'c_travel',     name: 'Travel',              emoji: '✈️', color: '#06AED5' },
-  { id: 'c_charity',    name: 'Donations / Charity', emoji: '❤️', color: '#E63946' },
-  { id: 'c_personal',   name: 'Personal Expenses',   emoji: '👤', color: '#9D4EDD' },
-  { id: 'c_investment', name: 'Investment',          emoji: '📈', color: '#34C759' },
-  { id: 'c_misc',       name: 'Miscellaneous',       emoji: '📌', color: '#6C757D' },
+  // bucket = Needs (50%) — essentials you can't skip
+  { id: 'c_groceries',  name: 'Groceries / Kitchen', emoji: '🛒', color: '#4ECDC4', bucket: 'need' },
+  { id: 'c_transport',  name: 'Transportation',      emoji: '🚗', color: '#45B7D1', bucket: 'need' },
+  { id: 'c_bills',      name: 'Bills & Utilities',   emoji: '⚡', color: '#FFA07A', bucket: 'need' },
+  { id: 'c_rent',       name: 'Rent',                emoji: '🏠', color: '#8E7CC3', bucket: 'need' },
+  { id: 'c_health',     name: 'Health & Medical',    emoji: '💊', color: '#2A9D8F', bucket: 'need' },
+  { id: 'c_education',  name: 'Education',           emoji: '📚', color: '#264653', bucket: 'need' },
+  // bucket = Wants (30%) — lifestyle choices
+  { id: 'c_food',       name: 'Food & Dining',       emoji: '🍽️', color: '#FF6B6B', bucket: 'want' },
+  { id: 'c_fun',        name: 'Entertainment',       emoji: '🎮', color: '#F4A261', bucket: 'want' },
+  { id: 'c_shopping',   name: 'Shopping',            emoji: '🛍️', color: '#E76F51', bucket: 'want' },
+  { id: 'c_travel',     name: 'Travel',              emoji: '✈️', color: '#06AED5', bucket: 'want' },
+  { id: 'c_personal',   name: 'Personal Expenses',   emoji: '👤', color: '#9D4EDD', bucket: 'want' },
+  { id: 'c_misc',       name: 'Miscellaneous',       emoji: '📌', color: '#6C757D', bucket: 'want' },
+  // bucket = Goals (20%) — wealth building + purposeful giving
+  { id: 'c_investment', name: 'Investment',          emoji: '📈', color: '#34C759', bucket: 'goal' },
+  { id: 'c_charity',    name: 'Donations / Charity', emoji: '❤️', color: '#E63946', bucket: 'goal' },
 ];
 
 function loadState() {
@@ -643,12 +910,25 @@ function loadState() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const s = JSON.parse(raw);
-      // Migration: inject any DEFAULT_CATEGORIES that were added after the user
+      // Migration 1: inject any DEFAULT_CATEGORIES that were added after the user
       // first opened the app (so existing users get "Investment" automatically).
       DEFAULT_CATEGORIES.forEach(def => {
         if (!s.categories.some(c => c.id === def.id || c.name === def.name)) {
           s.categories.push(def);
         }
+      });
+      // Migration 2: assign buckets to categories that don't have one yet. Match
+      // by id to DEFAULT_CATEGORIES; custom categories default to "want".
+      s.categories.forEach(c => {
+        if (!c.bucket) {
+          const def = DEFAULT_CATEGORIES.find(d => d.id === c.id);
+          c.bucket = def?.bucket || 'want';
+        }
+      });
+      // Migration 3: expenses gain `currency` + `originalAmount` fields (PKR
+      // with amount == originalAmount if legacy).
+      s.expenses.forEach(e => {
+        if (!e.currency) { e.currency = 'PKR'; e.originalAmount = e.amount; }
       });
       return s;
     }
@@ -670,6 +950,47 @@ const money = v => new Intl.NumberFormat(locale, {
   style: 'currency', currency, maximumFractionDigits: 0, minimumFractionDigits: 0,
 }).format(v || 0);
 
+// ---------- Multi-currency ----------
+// Rates are "how many PKR for 1 unit of this currency". Users edit them in
+// Settings. Sensible defaults (approximate mid-2025 rates) ship out of the box;
+// the user is expected to adjust or toggle currencies on/off.
+const DEFAULT_RATES = {
+  PKR: { symbol: 'Rs',  name: 'Pakistani Rupee',   rate: 1,    enabled: true  },
+  USD: { symbol: '$',   name: 'US Dollar',         rate: 280,  enabled: true  },
+  SAR: { symbol: '﷼',   name: 'Saudi Riyal',       rate: 74,   enabled: true  },
+  AED: { symbol: 'د.إ', name: 'UAE Dirham',        rate: 76,   enabled: true  },
+  GBP: { symbol: '£',   name: 'British Pound',     rate: 355,  enabled: false },
+  EUR: { symbol: '€',   name: 'Euro',              rate: 305,  enabled: false },
+  INR: { symbol: '₹',   name: 'Indian Rupee',      rate: 3.3,  enabled: false },
+  CAD: { symbol: 'C$',  name: 'Canadian Dollar',   rate: 205,  enabled: false },
+  AUD: { symbol: 'A$',  name: 'Australian Dollar', rate: 185,  enabled: false },
+};
+function loadRates() {
+  try {
+    const raw = localStorage.getItem(RATES_KEY);
+    if (raw) {
+      const stored = JSON.parse(raw);
+      // Merge with defaults so new currencies added in future versions show up.
+      const merged = { ...DEFAULT_RATES };
+      Object.keys(stored).forEach(k => { merged[k] = { ...merged[k], ...stored[k] }; });
+      return merged;
+    }
+  } catch {}
+  return { ...DEFAULT_RATES };
+}
+function saveRates() { localStorage.setItem(RATES_KEY, JSON.stringify(rates)); }
+let rates = loadRates();
+
+// Convert an amount in `fromCur` to PKR (base currency).
+function toPKR(amount, fromCur) {
+  const r = rates[fromCur]?.rate || 1;
+  return amount * r;
+}
+// List of currencies the user has switched on, base first.
+function enabledCurrencies() {
+  return Object.keys(rates).filter(k => rates[k].enabled);
+}
+
 // ---------- Tab switching ----------
 function switchTab(name) {
   document.querySelectorAll('.tab-panel').forEach(el => {
@@ -682,6 +1003,7 @@ function switchTab(name) {
   if (name === 'history') renderHistory();
   if (name === 'analytics') renderAnalytics();
   if (name === 'categories') renderCategories();
+  if (name === 'insights') renderInsights();
   if (name === 'add') { renderGreeting(); renderAddTab(); }
 }
 document.querySelectorAll('.tabbar button').forEach(b => {
@@ -690,15 +1012,49 @@ document.querySelectorAll('.tabbar button').forEach(b => {
 
 // ---------- ADD tab ----------
 const amountInput = document.getElementById('amount');
+const amountCurrencyEl = document.getElementById('amountCurrency');
+const amountPrefixEl = document.getElementById('amountPrefix');
+const currencyHintEl = document.getElementById('currencyHint');
 const dateInput = document.getElementById('date');
 const noteInput = document.getElementById('note');
 const chipsEl = document.getElementById('categoryChips');
 const saveBtn = document.getElementById('saveBtn');
 let selectedCategoryId = state.categories[0]?.id || null;
+let selectedCurrency = 'PKR';
+
+// Rebuild the currency dropdown from the user's enabled currencies. Called on
+// first load and whenever Settings changes which currencies are enabled.
+function renderCurrencyPicker() {
+  if (!amountCurrencyEl) return;
+  const enabled = enabledCurrencies();
+  // If currently selected currency got turned off, fall back to PKR.
+  if (!enabled.includes(selectedCurrency)) selectedCurrency = 'PKR';
+  amountCurrencyEl.innerHTML = enabled.map(code =>
+    `<option value="${code}" ${code===selectedCurrency?'selected':''}>${code} ${rates[code].symbol}</option>`
+  ).join('');
+  updateCurrencyVisual();
+}
+function updateCurrencyVisual() {
+  const r = rates[selectedCurrency];
+  if (amountPrefixEl) amountPrefixEl.textContent = r.symbol;
+  if (currencyHintEl) {
+    currencyHintEl.textContent = selectedCurrency === 'PKR'
+      ? r.name
+      : `${r.name} · 1 ${selectedCurrency} ≈ Rs ${r.rate}`;
+  }
+}
+if (amountCurrencyEl) {
+  amountCurrencyEl.addEventListener('change', () => {
+    selectedCurrency = amountCurrencyEl.value;
+    updateCurrencyVisual();
+  });
+}
 
 function renderAddTab() {
   // Default date = today unless user already touched it this session.
   if (!dateInput.value) dateInput.value = todayIso();
+  // Keep the currency picker in sync with the enabled-currency list.
+  renderCurrencyPicker();
   // Re-draw category chips every time in case user added one.
   chipsEl.innerHTML = '';
   if (!state.categories.find(c => c.id === selectedCategoryId)) {
@@ -744,11 +1100,17 @@ function updateSaveEnabled() {
 amountInput.addEventListener('input', updateSaveEnabled);
 
 saveBtn.addEventListener('click', () => {
-  const amount = parseFloat(amountInput.value);
-  if (!(amount > 0) || !selectedCategoryId) return;
+  const entered = parseFloat(amountInput.value);
+  if (!(entered > 0) || !selectedCategoryId) return;
+  // Always store PKR as the canonical `amount` so totals/charts/budget all
+  // speak one language. The raw user entry is preserved in `originalAmount`
+  // + `currency` for the History display.
+  const amount = toPKR(entered, selectedCurrency);
   state.expenses.push({
     id: 'e_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
     amount,
+    originalAmount: entered,
+    currency: selectedCurrency,
     categoryId: selectedCategoryId,
     note: noteInput.value.trim(),
     date: dateInput.value || todayIso(),
@@ -777,10 +1139,45 @@ document.getElementById('clearFilters').onclick = () => {
   filterCategory.value = '';
   filterFrom.value = '';
   filterTo.value = '';
+  setHistoryRangeActive('all');
   renderHistory();
 };
 [filterCategory, filterFrom, filterTo].forEach(el =>
   el.addEventListener('change', renderHistory));
+
+// History quick-range picker: sets filterFrom/filterTo to a rolling window.
+// "custom" keeps whatever is in those inputs. "all" clears them.
+const historyRange = document.getElementById('historyRange');
+function setHistoryRangeActive(key) {
+  historyRange.querySelectorAll('button').forEach(b =>
+    b.classList.toggle('active', b.dataset.range === key));
+}
+function applyHistoryRange(key) {
+  const now = new Date();
+  const today = todayIso();
+  if (key === 'day') {
+    filterFrom.value = today; filterTo.value = today;
+  } else if (key === 'week') {
+    const d = new Date(now); d.setDate(d.getDate() - 6);
+    filterFrom.value = d.toISOString().slice(0, 10); filterTo.value = today;
+  } else if (key === 'month') {
+    const first = new Date(now.getFullYear(), now.getMonth(), 1);
+    filterFrom.value = first.toISOString().slice(0, 10); filterTo.value = today;
+  } else if (key === 'year') {
+    const first = new Date(now.getFullYear(), 0, 1);
+    filterFrom.value = first.toISOString().slice(0, 10); filterTo.value = today;
+  } else if (key === 'all') {
+    filterFrom.value = ''; filterTo.value = '';
+  }
+  // 'custom' leaves the dates alone; user edits manually.
+  setHistoryRangeActive(key);
+  renderHistory();
+}
+historyRange.querySelectorAll('button').forEach(b => {
+  b.addEventListener('click', () => applyHistoryRange(b.dataset.range));
+});
+// Default: this month on first open.
+applyHistoryRange('month');
 
 function renderHistory() {
   // Populate category filter (preserve current selection).
@@ -796,7 +1193,29 @@ function renderHistory() {
     .sort((a, b) => (b.date + b.id).localeCompare(a.date + a.id));
 
   const total = filtered.reduce((s, e) => s + e.amount, 0);
-  historyHeader.innerHTML = `Entries (${filtered.length}) · <span style="color:var(--text-secondary);text-transform:none;letter-spacing:0;">${money(total)}</span>`;
+  // Period-over-period delta — if the user has selected a From/To range,
+  // compare against the same-length window immediately before.
+  let deltaHtml = '';
+  if (filterFrom.value && filterTo.value) {
+    const f = new Date(filterFrom.value + 'T00:00:00');
+    const t = new Date(filterTo.value + 'T00:00:00');
+    const days = Math.round((t - f) / 86400000) + 1;
+    const prevTo = new Date(f); prevTo.setDate(prevTo.getDate() - 1);
+    const prevFrom = new Date(prevTo); prevFrom.setDate(prevFrom.getDate() - days + 1);
+    const isoP = d => d.toISOString().slice(0, 10);
+    const prevFromS = isoP(prevFrom), prevToS = isoP(prevTo);
+    const prev = state.expenses
+      .filter(e => !filterCategory.value || e.categoryId === filterCategory.value)
+      .filter(e => e.date >= prevFromS && e.date <= prevToS)
+      .reduce((s, e) => s + e.amount, 0);
+    if (prev > 0) {
+      const pct = Math.round(((total - prev) / prev) * 100);
+      const arrow = pct > 0 ? '↑' : pct < 0 ? '↓' : '→';
+      const col = pct > 10 ? 'var(--danger)' : pct < -5 ? 'var(--success)' : 'var(--text-secondary)';
+      deltaHtml = ` · <span style="color:${col};text-transform:none;letter-spacing:0;">${arrow} ${Math.abs(pct)}% vs prev</span>`;
+    }
+  }
+  historyHeader.innerHTML = `Entries (${filtered.length}) · <span style="color:var(--text-secondary);text-transform:none;letter-spacing:0;">${money(total)}</span>${deltaHtml}`;
 
   if (filtered.length === 0) {
     historyList.innerHTML = `<div class="empty"><span class="emoji">📭</span>No expenses match your filters.</div>`;
@@ -991,9 +1410,9 @@ function parseCsvRow(line) {
   return out;
 }
 
-function parseCsv(text) {
-  // Normalize line endings. Split on \n but respect multi-line quoted fields
-  // (we treat the whole text and walk char-by-char).
+// Low-level CSV parser: returns { header: string[], rows: string[][] }.
+// Lets the UI build its own column-mapping without assuming header names.
+function parseCsvRaw(text) {
   const lines = [];
   let buf = ''; let inQ = false;
   for (let i = 0; i < text.length; i++) {
@@ -1006,24 +1425,75 @@ function parseCsv(text) {
     } else buf += ch;
   }
   if (buf.length) lines.push(buf);
-  if (lines.length === 0) return [];
-  const header = parseCsvRow(lines.shift()).map(h => h.trim().toLowerCase());
-  const idx = {
-    date: header.indexOf('date'),
-    category: header.indexOf('category'),
-    amount: header.indexOf('amount'),
-    note: header.indexOf('note'),
+  if (lines.length === 0) return { header: [], rows: [] };
+  const header = parseCsvRow(lines.shift()).map(h => h.trim());
+  const rows = lines.map(line => parseCsvRow(line));
+  return { header, rows };
+}
+
+// Try to guess which column maps to which field based on header text. Fuzzy —
+// e.g. "Transaction Date", "Merchant", "Debit" should all work out of the box.
+function guessColumnMapping(header) {
+  const lc = header.map(h => h.toLowerCase());
+  const pick = (patterns) => {
+    for (const p of patterns) {
+      const i = lc.findIndex(h => p.test(h));
+      if (i >= 0) return i;
+    }
+    return -1;
   };
-  if (idx.date < 0 || idx.amount < 0) throw new Error('CSV must include Date and Amount columns');
-  return lines.map(line => {
-    const cols = parseCsvRow(line);
-    return {
-      date: (cols[idx.date] || '').trim(),
-      category: (cols[idx.category] || '').trim(),
-      amount: parseFloat((cols[idx.amount] || '').trim()),
-      note: idx.note >= 0 ? (cols[idx.note] || '').trim() : '',
-    };
-  }).filter(r => r.date && !isNaN(r.amount) && r.amount > 0);
+  return {
+    date:     pick([/^date$/, /transaction date/, /posted/, /\bdate\b/]),
+    amount:   pick([/^amount$/, /^value$/, /^debit$/, /^withdrawal/, /\bamount\b/, /total/, /price/]),
+    category: pick([/^category$/, /^type$/, /merchant/, /description/, /payee/, /\bcategory\b/]),
+    note:     pick([/^note$/, /^memo$/, /comment/, /details/, /description/, /narration/]),
+    currency: pick([/^currency$/, /\bcur\b/, /ccy/]),
+  };
+}
+
+// Normalises a date cell to YYYY-MM-DD. Accepts a few common formats:
+// ISO (2024-01-31), UK/US dashes, slashes, dots, and Excel-style timestamps.
+function normalizeDate(s) {
+  if (!s) return '';
+  const t = s.trim();
+  // Already ISO
+  if (/^\d{4}-\d{2}-\d{2}/.test(t)) return t.slice(0, 10);
+  // Slash / dot / dash numeric — assume DD?MM?YYYY (common outside US)
+  const m = t.match(/^(\d{1,2})[\/\.\-](\d{1,2})[\/\.\-](\d{2,4})$/);
+  if (m) {
+    let [_, a, b, y] = m;
+    if (y.length === 2) y = (parseInt(y, 10) > 50 ? '19' : '20') + y;
+    // Heuristic: if first group > 12, it must be DD/MM. Otherwise assume DD/MM (user is in PK/UK locales).
+    let dd = a, mm = b;
+    if (parseInt(a, 10) > 12) { dd = a; mm = b; }
+    return `${y}-${mm.padStart(2,'0')}-${dd.padStart(2,'0')}`;
+  }
+  // Fallback: let Date try.
+  const d = new Date(t);
+  if (!isNaN(d)) return d.toISOString().slice(0, 10);
+  return '';
+}
+
+// Strip currency symbols / thousand separators from an amount cell.
+function parseAmountCell(s) {
+  if (!s) return NaN;
+  const cleaned = String(s).replace(/[^\d.\-]/g, '');
+  return parseFloat(cleaned);
+}
+
+// Back-compat wrapper: tries to parse a CSV with auto-detected columns.
+// Used when the file already has our own exported schema (date/category/amount/note).
+function parseCsv(text) {
+  const { header, rows } = parseCsvRaw(text);
+  if (rows.length === 0) return [];
+  const map = guessColumnMapping(header);
+  if (map.date < 0 || map.amount < 0) throw new Error('CSV must include Date and Amount columns');
+  return rows.map(cols => ({
+    date: normalizeDate(cols[map.date] || ''),
+    category: map.category >= 0 ? (cols[map.category] || '').trim() : '',
+    amount: parseAmountCell(cols[map.amount]),
+    note: map.note >= 0 ? (cols[map.note] || '').trim() : '',
+  })).filter(r => r.date && !isNaN(r.amount) && r.amount > 0);
 }
 
 // Turn a parsed CSV into new expenses. Matches categories by name (case-insensitive);
@@ -1063,15 +1533,126 @@ document.getElementById('importFile').addEventListener('change', async (ev) => {
   if (!file) return;
   try {
     const text = await file.text();
-    const rows = parseCsv(text);
+    const { header, rows } = parseCsvRaw(text);
     if (rows.length === 0) { showToast('No valid rows in file'); return; }
-    const res = importParsedRows(rows);
-    showToast(`Imported ${res.added} expense${res.added === 1 ? '' : 's'}`);
-    renderAddTab(); renderHistory(); renderCategories();
+    // Open the column-mapping UI so the user can tell us which column is which.
+    openImportMapper(header, rows);
   } catch (err) {
     showToast(err.message || 'Import failed');
   }
 });
+
+// CSV column-mapping modal. Shows a dropdown next to each required field
+// (Date, Amount, Category, Note) populated from the source file's header.
+// Pre-selects guessed columns. User hits Import → we build rows + call
+// importParsedRows.
+function openImportMapper(header, rows) {
+  const guess = guessColumnMapping(header);
+  let map = { ...guess };
+  openModal({
+    title: 'Map CSV Columns',
+    rightBtn: { label: 'Import', bold: true },
+    render: (body) => {
+      const headerOpts = (selected, allowEmpty = true) => {
+        let html = allowEmpty ? '<option value="-1">— none —</option>' : '';
+        html += header.map((h, i) =>
+          `<option value="${i}" ${i===selected?'selected':''}>${escapeHtml(h || '(col ' + (i+1) + ')')}</option>`
+        ).join('');
+        return html;
+      };
+
+      // Live preview of first 3 rows after current mapping.
+      body.innerHTML = `
+        <div class="section" style="margin:0 0 12px;">
+          <div class="section-title">Source</div>
+          <div class="card">
+            <div class="row" style="font-size:13px;color:var(--text-secondary);">
+              ${header.length} column${header.length===1?'':'s'} · ${rows.length} row${rows.length===1?'':'s'}
+            </div>
+          </div>
+        </div>
+        <div class="section" style="margin:0 0 12px;">
+          <div class="section-title">Map to app fields</div>
+          <div class="card">
+            <div class="row"><span class="label">Date <span style="color:var(--danger);">*</span></span>
+              <select id="mapDate">${headerOpts(map.date, false)}</select></div>
+            <div class="row"><span class="label">Amount <span style="color:var(--danger);">*</span></span>
+              <select id="mapAmount">${headerOpts(map.amount, false)}</select></div>
+            <div class="row"><span class="label">Category</span>
+              <select id="mapCategory">${headerOpts(map.category)}</select></div>
+            <div class="row"><span class="label">Note</span>
+              <select id="mapNote">${headerOpts(map.note)}</select></div>
+            <div class="row"><span class="label">Currency</span>
+              <select id="mapCurrency">${headerOpts(map.currency)}</select></div>
+          </div>
+        </div>
+        <div class="section" style="margin:0;">
+          <div class="section-title">Preview (first 3 rows)</div>
+          <div class="card" id="mapPreview"></div>
+        </div>
+      `;
+
+      const sel = (id) => parseInt(body.querySelector(id).value, 10);
+      function refreshMap() {
+        map = {
+          date: sel('#mapDate'),
+          amount: sel('#mapAmount'),
+          category: sel('#mapCategory'),
+          note: sel('#mapNote'),
+          currency: sel('#mapCurrency'),
+        };
+        renderPreview();
+      }
+      function renderPreview() {
+        const preview = rows.slice(0, 3).map(cols => {
+          const r = rowFromMap(cols, map);
+          const valid = r.date && !isNaN(r.amount) && r.amount > 0;
+          return `
+            <div class="row" style="flex-direction:column; align-items:flex-start; gap:2px;">
+              <div style="font-size:13px; font-weight:600; ${valid?'':'color:var(--danger);'}">
+                ${valid ? '✓' : '⚠'} ${escapeHtml(r.date || '(no date)')} ·
+                Rs ${isNaN(r.amount)?'?':r.amount}${r.currency && r.currency !== 'PKR' ? ' ' + escapeHtml(r.currency) : ''}
+              </div>
+              <div style="font-size:12px; color:var(--text-secondary);">
+                ${escapeHtml(r.category || 'Uncategorized')}${r.note ? ' · ' + escapeHtml(r.note) : ''}
+              </div>
+            </div>`;
+        }).join('') || '<div class="row" style="font-size:13px;color:var(--text-secondary);">No rows to preview</div>';
+        body.querySelector('#mapPreview').innerHTML = preview;
+      }
+      body.querySelectorAll('select').forEach(s => s.addEventListener('change', refreshMap));
+      renderPreview();
+
+      return () => {
+        if (map.date < 0 || map.amount < 0) {
+          showToast('Pick a Date and Amount column');
+          return false;
+        }
+        const parsed = rows.map(cols => rowFromMap(cols, map))
+          .filter(r => r.date && !isNaN(r.amount) && r.amount > 0);
+        if (parsed.length === 0) { showToast('No valid rows to import'); return false; }
+        const res = importParsedRows(parsed);
+        showToast(`Imported ${res.added} expense${res.added === 1 ? '' : 's'}` +
+                  (res.newCategories ? `, ${res.newCategories} new categor${res.newCategories===1?'y':'ies'}` : ''));
+        renderAddTab(); renderHistory(); renderCategories();
+        return true;
+      };
+    },
+  });
+}
+
+// Shared row extractor used by preview + import.
+function rowFromMap(cols, map) {
+  const get = (i) => (i >= 0 && cols[i] != null) ? String(cols[i]).trim() : '';
+  const cur = (get(map.currency) || 'PKR').toUpperCase();
+  return {
+    date: normalizeDate(get(map.date)),
+    amount: parseAmountCell(get(map.amount)),
+    category: get(map.category),
+    note: get(map.note),
+    currency: rates[cur] ? cur : 'PKR',
+  };
+}
 
 // ---------- Share monthly insights as an image ----------
 // Builds a self-contained SVG card for the month currently shown on the
@@ -1181,6 +1762,29 @@ let viewedMonth = new Date(); viewedMonth.setDate(1);
 document.getElementById('monthPrev').onclick = () => shiftMonth(-1);
 document.getElementById('monthNext').onclick = () => shiftMonth(1);
 
+// Analytics range picker state (same shape as INSIGHTS_STATE). Lets users
+// pivot the report between Day / Week / Month / Year / Custom — "Month"
+// continues to use the month-switcher; the other modes hide it.
+const ANALYTICS_STATE = { range: 'month', customFrom: null, customTo: null };
+document.querySelectorAll('#analyticsRange button').forEach(b => {
+  b.addEventListener('click', () => {
+    ANALYTICS_STATE.range = b.dataset.range;
+    if (b.dataset.range === 'custom' && !ANALYTICS_STATE.customFrom) {
+      const now = new Date();
+      const prev = new Date(now); prev.setMonth(prev.getMonth() - 1);
+      ANALYTICS_STATE.customFrom = prev.toISOString().slice(0, 10);
+      ANALYTICS_STATE.customTo = now.toISOString().slice(0, 10);
+    }
+    renderAnalytics();
+  });
+});
+document.getElementById('analyticsCustomFrom').addEventListener('change', e => {
+  ANALYTICS_STATE.customFrom = e.target.value; renderAnalytics();
+});
+document.getElementById('analyticsCustomTo').addEventListener('change', e => {
+  ANALYTICS_STATE.customTo = e.target.value; renderAnalytics();
+});
+
 function shiftMonth(delta) {
   const d = new Date(viewedMonth);
   d.setMonth(d.getMonth() + delta);
@@ -1188,8 +1792,51 @@ function shiftMonth(delta) {
   renderAnalytics();
 }
 
+// Compute [fromISO, toISO] for the current analytics range. For "month" we
+// still use viewedMonth so the Prev/Next arrows keep working. For other
+// ranges we use a rolling window from today.
+function analyticsDateRange() {
+  const r = ANALYTICS_STATE.range;
+  const iso = d => d.toISOString().slice(0, 10);
+  if (r === 'month') {
+    const y = viewedMonth.getFullYear(), m = viewedMonth.getMonth();
+    const first = new Date(y, m, 1);
+    const last = new Date(y, m + 1, 0);
+    return [iso(first), iso(last)];
+  }
+  const now = new Date();
+  if (r === 'day') return [iso(now), iso(now)];
+  if (r === 'week') { const d = new Date(now); d.setDate(d.getDate() - 6); return [iso(d), iso(now)]; }
+  if (r === 'year') { const d = new Date(now.getFullYear(), 0, 1); return [iso(d), iso(now)]; }
+  if (r === 'custom') return [ANALYTICS_STATE.customFrom || iso(now), ANALYTICS_STATE.customTo || iso(now)];
+  return [iso(now), iso(now)];
+}
+// Previous window of equal length — used for MoM/period-over-period comparison.
+function analyticsPreviousRange() {
+  const [from, to] = analyticsDateRange();
+  const fromD = new Date(from + 'T00:00:00');
+  const toD = new Date(to + 'T00:00:00');
+  const days = Math.round((toD - fromD) / 86400000) + 1;
+  const prevTo = new Date(fromD); prevTo.setDate(prevTo.getDate() - 1);
+  const prevFrom = new Date(prevTo); prevFrom.setDate(prevFrom.getDate() - days + 1);
+  const iso = d => d.toISOString().slice(0, 10);
+  return [iso(prevFrom), iso(prevTo)];
+}
+
 function renderAnalytics() {
-  // Month label + forward button disabled state.
+  // Swap UI chrome based on range: month = show prev/next switcher + custom
+  // row hidden; any other range = hide the switcher.
+  document.querySelectorAll('#analyticsRange button').forEach(b => {
+    b.classList.toggle('active', b.dataset.range === ANALYTICS_STATE.range);
+  });
+  const isMonth = ANALYTICS_STATE.range === 'month';
+  document.getElementById('monthSwitcher').style.display = isMonth ? '' : 'none';
+  document.getElementById('analyticsCustomRow').style.display =
+    ANALYTICS_STATE.range === 'custom' ? '' : 'none';
+  document.getElementById('analyticsCustomFrom').value = ANALYTICS_STATE.customFrom || '';
+  document.getElementById('analyticsCustomTo').value = ANALYTICS_STATE.customTo || '';
+
+  // Month label + forward button disabled state (still useful when range=month).
   document.getElementById('monthLabel').textContent =
     viewedMonth.toLocaleString(locale, { month: 'long', year: 'numeric' });
   const now = new Date();
@@ -1197,12 +1844,9 @@ function renderAnalytics() {
                     viewedMonth.getMonth() === now.getMonth();
   document.getElementById('monthNext').disabled = isCurrent;
 
-  // Filter to month.
-  const y = viewedMonth.getFullYear(), m = viewedMonth.getMonth();
-  const inMonth = state.expenses.filter(e => {
-    const d = new Date(e.date);
-    return d.getFullYear() === y && d.getMonth() === m;
-  });
+  // Filter by the selected range.
+  const [from, to] = analyticsDateRange();
+  const inMonth = state.expenses.filter(e => e.date >= from && e.date <= to);
   const total = inMonth.reduce((s, e) => s + e.amount, 0);
   document.getElementById('monthTotal').textContent = money(total);
 
@@ -1232,12 +1876,15 @@ function renderAnalytics() {
 
   const pieSection = document.getElementById('pieSection');
   const breakdownSection = document.getElementById('breakdownSection');
+  const advisorSection = document.getElementById('analyticsAdvisorSection');
   if (slices.length === 0) {
     pieSection.style.display = 'none';
-    breakdownSection.innerHTML = `<div class="empty"><span class="emoji">📊</span>No spending in this month yet.</div>`;
+    breakdownSection.innerHTML = `<div class="empty"><span class="emoji">📊</span>No spending in this range yet.</div>`;
+    advisorSection.style.display = 'none';
     return;
   }
   pieSection.style.display = '';
+  advisorSection.style.display = '';
   drawPie(slices, total);
 
   breakdownSection.innerHTML = `
@@ -1253,6 +1900,30 @@ function renderAnalytics() {
           <div class="expense-amount">${money(s.total)}</div>
         </div>`).join('')}
     </div>`;
+
+  // Inline advisor for whatever range is selected. Uses the same card engine
+  // as the Insights tab so advice stays consistent across the app.
+  const [prevFrom, prevTo] = analyticsPreviousRange();
+  const prevWindow = state.expenses.filter(e => e.date >= prevFrom && e.date <= prevTo);
+  const income = parseFloat(localStorage.getItem(INCOME_KEY)) || 0;
+  const rangeLabel = ({ day: 'today', week: 'this week', month: 'this month',
+                       year: 'this year', custom: 'this period' })[ANALYTICS_STATE.range] || 'this period';
+  const prevLabel =  ({ day: 'yesterday', week: 'last week', month: 'last month',
+                       year: 'last year', custom: 'previous period' })[ANALYTICS_STATE.range] || 'previous period';
+  const cards = buildAdvisorCards({
+    income,
+    thisLabel: rangeLabel,
+    lastLabel: prevLabel,
+    thisMonth: inMonth,
+    lastMonth: prevWindow,
+    includeYoY: false,
+  });
+  document.getElementById('analyticsAdvisor').innerHTML = cards.map(c => `
+    <div class="insight-card ${c.cls}">
+      <div class="title">${c.title}</div>
+      <div class="body">${c.body}</div>
+    </div>
+  `).join('');
 }
 
 function updateBudgetBar(total) {
@@ -1307,6 +1978,410 @@ function drawPie(slices, total) {
   svg.innerHTML = paths + `<text x="100" y="94" text-anchor="middle" font-size="11" fill="var(--text-secondary)" font-family="-apple-system">Total</text><text x="100" y="114" text-anchor="middle" font-size="${fontSize}" font-weight="700" fill="var(--text)" font-family="-apple-system">${escapeHtml(centerStr)}</text>`;
 }
 
+// ---------- INSIGHTS tab (50/30/20 + advisor) ----------
+// Supported ranges. Values produce [startDate, endDate] inclusive.
+const INSIGHTS_STATE = {
+  range: 'month',
+  customFrom: null,
+  customTo: null,
+};
+
+// Return the [from, to] ISO-date boundaries for the currently selected range.
+function activeRange() {
+  const r = INSIGHTS_STATE.range;
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  const iso = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  if (r === 'day')   return [iso(now), iso(now)];
+  if (r === 'week')  { const w = new Date(now); w.setDate(now.getDate() - 6); return [iso(w), iso(now)]; }
+  if (r === 'month') { const m = new Date(now.getFullYear(), now.getMonth(), 1); return [iso(m), iso(now)]; }
+  if (r === 'year')  { const y = new Date(now.getFullYear(), 0, 1); return [iso(y), iso(now)]; }
+  if (r === 'custom') return [INSIGHTS_STATE.customFrom || iso(now), INSIGHTS_STATE.customTo || iso(now)];
+  return [iso(now), iso(now)];
+}
+
+// Expenses falling inside the current range.
+function rangedExpenses() {
+  const [from, to] = activeRange();
+  return state.expenses.filter(e => e.date >= from && e.date <= to);
+}
+
+// Sum expenses grouped by bucket (need/want/goal). Returns { need, want, goal, total }.
+function bucketTotals(expenses) {
+  const out = { need: 0, want: 0, goal: 0, total: 0 };
+  expenses.forEach(e => {
+    const cat = state.categories.find(c => c.id === e.categoryId);
+    const b = cat?.bucket || 'want';
+    out[b] = (out[b] || 0) + e.amount;
+    out.total += e.amount;
+  });
+  return out;
+}
+
+// Wire up the range picker once on boot — handlers stay live across re-renders.
+document.querySelectorAll('#insightsRange button').forEach(b => {
+  b.addEventListener('click', () => {
+    INSIGHTS_STATE.range = b.dataset.range;
+    // Prefill custom dates with "last 7 days" the first time they tap Custom.
+    if (b.dataset.range === 'custom' && !INSIGHTS_STATE.customFrom) {
+      const now = new Date();
+      const prev = new Date(now); prev.setDate(now.getDate() - 6);
+      const pad = n => String(n).padStart(2, '0');
+      const iso = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+      INSIGHTS_STATE.customFrom = iso(prev);
+      INSIGHTS_STATE.customTo = iso(now);
+    }
+    renderInsights();
+  });
+});
+document.getElementById('insightsCustomFrom').addEventListener('change', e => {
+  INSIGHTS_STATE.customFrom = e.target.value; renderInsights();
+});
+document.getElementById('insightsCustomTo').addEventListener('change', e => {
+  INSIGHTS_STATE.customTo = e.target.value; renderInsights();
+});
+document.getElementById('insightsIncome').addEventListener('input', e => {
+  const v = parseFloat(e.target.value);
+  if (v > 0) localStorage.setItem(INCOME_KEY, v);
+  else localStorage.removeItem(INCOME_KEY);
+  renderInsights();
+});
+document.getElementById('exportPdfBtn').addEventListener('click', () => {
+  // Print view uses the @media print CSS we set up — user gets a save-to-PDF
+  // option in the browser's print dialog.
+  switchTab('insights');
+  setTimeout(() => window.print(), 200);
+});
+
+// Master renderer for the Insights tab — called on tab switch + whenever a
+// relevant input (income, range, custom dates) changes.
+function renderInsights() {
+  // Range picker active state + custom row visibility.
+  document.querySelectorAll('#insightsRange button').forEach(b => {
+    b.classList.toggle('active', b.dataset.range === INSIGHTS_STATE.range);
+  });
+  document.getElementById('insightsCustomRow').style.display =
+    INSIGHTS_STATE.range === 'custom' ? '' : 'none';
+  document.getElementById('insightsCustomFrom').value = INSIGHTS_STATE.customFrom || '';
+  document.getElementById('insightsCustomTo').value = INSIGHTS_STATE.customTo || '';
+  const [from, to] = activeRange();
+  document.getElementById('insightsRangeLabel').textContent =
+    from === to ? fmtDate(from) : `${fmtDate(from)} → ${fmtDate(to)}`;
+
+  // Income
+  const income = parseFloat(localStorage.getItem(INCOME_KEY)) || 0;
+  const incomeInput = document.getElementById('insightsIncome');
+  if (document.activeElement !== incomeInput) {
+    incomeInput.value = income > 0 ? income : '';
+  }
+
+  const expenses = rangedExpenses();
+  const totals = bucketTotals(expenses);
+
+  // 50/30/20 bucket bars.
+  document.getElementById('bucketsCard').innerHTML = BUCKETS.map(b => {
+    const spent = totals[b.id] || 0;
+    const target = income > 0 ? income * b.target : 0;
+    const denominator = income > 0 ? income : Math.max(totals.total, 1);
+    const ratio = spent / denominator;
+    const widthPct = Math.min(ratio * 100, 100);
+    // Where does the target line sit on the bar? At b.target * 100% if income set.
+    const targetPct = income > 0 ? b.target * 100 : null;
+    return `
+      <div class="bucket-row">
+        <div class="bucket-head">
+          <div>
+            <span class="bucket-name" style="color:${b.color};">${b.label}</span>
+            <span class="bucket-target">${Math.round(b.target*100)}% target</span>
+          </div>
+          <div class="bucket-totals">
+            <span class="spent">${money(spent)}</span>
+            ${income > 0 ? `<span class="of"> / ${money(target)}</span>` : ''}
+          </div>
+        </div>
+        <div class="bucket-bar">
+          <div class="bucket-fill" style="width:${widthPct}%;background:${b.color};"></div>
+          ${targetPct !== null ? `<div class="target-line" style="left:${targetPct}%;"></div>` : ''}
+        </div>
+        <div class="bucket-hint">${b.hint}</div>
+      </div>`;
+  }).join('');
+
+  // Per-bucket line items: every expense in this range, grouped.
+  renderBucketLineItems(expenses, totals);
+
+  // Advisor cards — rule-based heuristics run against thisMonth vs lastMonth
+  // (irrespective of the range picker, since MoM is always calendar months).
+  renderAdvisor(income);
+}
+
+function renderBucketLineItems(expenses, totals) {
+  BUCKETS.forEach(b => {
+    const items = expenses.filter(e => {
+      const cat = state.categories.find(c => c.id === e.categoryId);
+      return (cat?.bucket || 'want') === b.id;
+    }).sort((a, c) => (c.date + c.id).localeCompare(a.date + a.id));
+    document.getElementById(`${b.id}sTotalLabel`).textContent = money(totals[b.id] || 0);
+    const listEl = document.getElementById(`${b.id}sList`);
+    if (items.length === 0) {
+      listEl.innerHTML = `<div class="empty" style="padding:22px 16px;"><span class="emoji">${b.id === 'need' ? '🏠' : b.id === 'want' ? '🎮' : '📈'}</span>No ${b.label.toLowerCase()} logged in this range.</div>`;
+      return;
+    }
+    // Tapping a line item opens the same edit modal as History.
+    listEl.innerHTML = items.map(e => {
+      const cat = state.categories.find(c => c.id === e.categoryId) ||
+                  { name: 'Uncategorized', emoji: '❔', color: '#8e8e93' };
+      return `
+        <div class="expense-row" data-id="${e.id}">
+          <div class="expense-icon" style="background:${hexToRgba(cat.color,0.18)};color:${cat.color};">${cat.emoji}</div>
+          <div class="expense-main">
+            <div class="title">${escapeHtml(cat.name)}</div>
+            <div class="sub">${escapeHtml(e.note) || fmtDate(e.date)}${e.note ? ' · ' + fmtDate(e.date) : ''}</div>
+          </div>
+          <div class="expense-amount">${money(e.amount)}</div>
+        </div>`;
+    }).join('');
+    listEl.querySelectorAll('.expense-row').forEach(row => {
+      row.addEventListener('click', () => editExpense(row.dataset.id));
+    });
+  });
+}
+
+// ---------- Rule-based Financial Advisor ----------
+// Deterministic heuristics that read like personalized advice. All run locally.
+function renderAdvisor(income) {
+  const cards = buildAdvisorCards({
+    income,
+    thisLabel: 'this month',
+    lastLabel: 'last month',
+    thisMonth: expensesInMonth(new Date()),
+    lastMonth: expensesInMonth(subMonths(new Date(), 1)),
+    includeYoY: true,
+  });
+  document.getElementById('advisorCards').innerHTML = cards.map(c => `
+    <div class="insight-card ${c.cls}">
+      <div class="title">${c.title}</div>
+      <div class="body">${c.body}</div>
+    </div>
+  `).join('');
+}
+
+// Pure card-builder. Takes a "current period" and "previous period" pair of
+// expense arrays and returns an array of { cls, title, body } objects. Reused
+// by the Insights tab (month-based) and the Analytics tab (range-based).
+function buildAdvisorCards({ income, thisMonth, lastMonth, thisLabel, lastLabel, includeYoY }) {
+  const cards = [];
+  const thisTotals = bucketTotals(thisMonth);
+  const lastTotals = bucketTotals(lastMonth);
+  const who = getUserName() || 'there';
+
+  // 1. BURN RATE — overall spend, current vs previous period.
+  if (thisTotals.total > 0 || lastTotals.total > 0) {
+    const diff = thisTotals.total - lastTotals.total;
+    const pct = lastTotals.total > 0 ? Math.round((diff / lastTotals.total) * 100) : null;
+    const severity = pct === null ? '' : (pct > 15 ? 'warn' : pct < -5 ? 'ok' : '');
+    const arrow = pct === null ? '' : (pct > 0 ? '↑' : pct < 0 ? '↓' : '→');
+    cards.push({
+      cls: severity,
+      title: '🔥 Burn Rate',
+      body: `You've spent <strong>${money(thisTotals.total)}</strong> ${thisLabel}` +
+            (lastTotals.total > 0
+              ? ` — ${arrow} <strong>${Math.abs(pct)}%</strong> vs ${lastLabel} (${money(lastTotals.total)}).`
+              : `. No data for ${lastLabel} to compare yet.`),
+    });
+  }
+
+  // 1b. BUCKET-LEVEL MoM — pinpoint which 50/30/20 bucket drove the change,
+  // and which category within it was the biggest contributor. Produces the
+  // "Wants increased 15% due to Dining Out" style callout.
+  BUCKETS.forEach(b => {
+    const tnow = thisTotals[b.id] || 0;
+    const tprev = lastTotals[b.id] || 0;
+    if (tprev <= 0 || tnow <= 0) return;
+    const diff = tnow - tprev;
+    const pct = Math.round((diff / tprev) * 100);
+    if (Math.abs(pct) < 10) return; // only surface meaningful moves
+    // Biggest category in this bucket, current period.
+    const byCat = {};
+    thisMonth.forEach(e => {
+      const c = state.categories.find(x => x.id === e.categoryId);
+      if (!c || c.bucket !== b.id) return;
+      byCat[c.id] = (byCat[c.id] || 0) + e.amount;
+    });
+    let topCat = null;
+    Object.entries(byCat).forEach(([id, amt]) => {
+      if (!topCat || amt > topCat.amt) topCat = { id, amt };
+    });
+    const topC = topCat ? state.categories.find(x => x.id === topCat.id) : null;
+    const arrow = pct > 0 ? '↑' : '↓';
+    const severity = pct > 15 && b.id !== 'goal' ? 'warn' : pct < 0 && b.id === 'goal' ? 'warn' : '';
+    cards.push({
+      cls: severity,
+      title: `${arrow} ${b.label} ${pct > 0 ? 'up' : 'down'} ${Math.abs(pct)}%`,
+      body: `Your <strong>${b.label}</strong> went from ${money(tprev)} to <strong>${money(tnow)}</strong>` +
+            (topC ? `, mostly driven by <strong>${topC.emoji} ${topC.name}</strong> (${money(topCat.amt)}).` : '.') +
+            (b.id === 'want' && pct > 15 ? ` Try picking one ${topC?.name || 'Wants'} session to skip next ${thisLabel.includes('week') ? 'week' : 'month'}.` : '') +
+            (b.id === 'goal' && pct < 0 ? ` Goals shrinking is a red flag — protect this bucket first.` : ''),
+    });
+  });
+
+  // 2. MoM spikes per category — call out the single biggest swing.
+  const catDelta = categoryDelta(thisMonth, lastMonth);
+  if (catDelta && catDelta.pct >= 20 && catDelta.lastTotal > 0) {
+    const bucketName = BUCKETS.find(b => b.id === (catDelta.category.bucket || 'want'))?.label || '';
+    const capSuggestion = money(catDelta.lastTotal);
+    cards.push({
+      cls: 'warn',
+      title: `📈 ${catDelta.category.emoji} ${catDelta.category.name} spiked`,
+      body: `Up <strong>${catDelta.pct}%</strong> this month (${money(catDelta.thisTotal)} vs ${money(catDelta.lastTotal)}). ` +
+            (bucketName ? `That's in your <strong>${bucketName}</strong> bucket. ` : '') +
+            `Try capping it at <strong>${capSuggestion}</strong> next month to rebalance.`,
+    });
+  }
+
+  // 3. 50/30/20 CHECK — only meaningful if income is set.
+  if (income > 0 && thisTotals.total > 0) {
+    const goalShare = thisTotals.goal / income;
+    const wantShare = thisTotals.want / income;
+    const needShare = thisTotals.need / income;
+
+    if (goalShare < 0.2) {
+      // Find top 3 Want categories this month.
+      const wantsByCat = {};
+      thisMonth.forEach(e => {
+        const c = state.categories.find(x => x.id === e.categoryId);
+        if (!c || c.bucket !== 'want') return;
+        wantsByCat[c.id] = (wantsByCat[c.id] || 0) + e.amount;
+      });
+      const topWants = Object.entries(wantsByCat)
+        .sort((a, b) => b[1] - a[1]).slice(0, 3)
+        .map(([id, total]) => {
+          const c = state.categories.find(x => x.id === id);
+          return `<li><strong>${c.emoji} ${c.name}</strong> — trim 20% to save ~${money(total * 0.2)}/month</li>`;
+        }).join('');
+      cards.push({
+        cls: 'warn',
+        title: '🎯 Goals below 20% target',
+        body: `Your Goals bucket is only <strong>${Math.round(goalShare * 100)}%</strong> of income (target: 20%). ` +
+              `Three quick wins from your biggest Wants:` +
+              `<ul>${topWants || '<li>No Wants logged to trim yet.</li>'}</ul>`,
+      });
+    } else {
+      cards.push({
+        cls: 'ok',
+        title: '✅ You\'re hitting the 20% Goals target',
+        body: `Goals are <strong>${Math.round(goalShare * 100)}%</strong> of income — above the 20% 50/30/20 target. Nice.`,
+      });
+    }
+
+    if (wantShare > 0.35) {
+      cards.push({
+        cls: 'warn',
+        title: '⚠️ Wants over 30% threshold',
+        body: `Wants are <strong>${Math.round(wantShare * 100)}%</strong> of income (target: ≤30%). Consider moving ` +
+              `<strong>${money((wantShare - 0.3) * income)}</strong> from lifestyle into Goals next month.`,
+      });
+    }
+
+    if (needShare > 0.55) {
+      cards.push({
+        cls: 'warn',
+        title: '🏠 Needs running high',
+        body: `Essentials eat <strong>${Math.round(needShare * 100)}%</strong> of income (target: ≤50%). ` +
+              `Review Bills, Rent and Transport for any negotiable line items.`,
+      });
+    }
+  }
+
+  // 4. WEALTH GAP ANALYSIS — requires income.
+  if (income > 0 && thisTotals.total > 0) {
+    const gap = income - thisTotals.total;
+    const bridge = thisTotals.need * 0.1;
+    if (gap > 0) {
+      cards.push({
+        cls: 'ok',
+        title: '💰 Wealth Gap & Investment Bridge',
+        body: `Income minus spending leaves <strong>${money(gap)}</strong> this month. ` +
+              `If you also trim 10% off Needs (${money(bridge)}), you could invest ` +
+              `<strong>${money(gap + bridge)}</strong>/month — that's ` +
+              `<strong>${money((gap + bridge) * 12)}</strong>/year.`,
+      });
+    } else {
+      cards.push({
+        cls: 'danger',
+        title: '🚨 Spending exceeds income',
+        body: `You've spent <strong>${money(Math.abs(gap))}</strong> more than your income this month. ` +
+              `Pause discretionary Wants and review recurring Bills immediately.`,
+      });
+    }
+  }
+
+  // 5. YoY comparison — only for callers that want it (Insights tab).
+  if (includeYoY) {
+    const now = new Date();
+    const thisYear = expensesInYear(now);
+    const lastYear = expensesInYear(subYears(now, 1));
+    const thisYearTotals = bucketTotals(thisYear);
+    const lastYearTotals = bucketTotals(lastYear);
+    if (lastYearTotals.total > 0) {
+      const diff = thisYearTotals.total - lastYearTotals.total;
+      const pct = Math.round((diff / lastYearTotals.total) * 100);
+      cards.push({
+        cls: Math.abs(pct) > 20 ? 'warn' : '',
+        title: '📅 Year-on-Year',
+        body: `Spending year-to-date: <strong>${money(thisYearTotals.total)}</strong> ` +
+              `(${pct > 0 ? '+' : ''}${pct}% vs ${lastYear[0] ? new Date(lastYear[0].date).getFullYear() : 'last year'}).`,
+      });
+    }
+  }
+
+  // Empty state if we have nothing to advise on.
+  if (cards.length === 0) {
+    cards.push({
+      cls: '',
+      title: '👋 Not enough data yet',
+      body: `Hi ${who} — add a few expenses and set your monthly income in Settings, and I'll start giving you tailored tips.`,
+    });
+  }
+
+  return cards;
+}
+
+// Helpers used by the advisor.
+function subMonths(d, n) { const x = new Date(d); x.setMonth(x.getMonth() - n); return x; }
+function subYears(d, n)  { const x = new Date(d); x.setFullYear(x.getFullYear() - n); return x; }
+function expensesInMonth(d) {
+  const y = d.getFullYear(), m = d.getMonth();
+  return state.expenses.filter(e => {
+    const ed = new Date(e.date);
+    return ed.getFullYear() === y && ed.getMonth() === m;
+  });
+}
+function expensesInYear(d) {
+  const y = d.getFullYear();
+  return state.expenses.filter(e => new Date(e.date).getFullYear() === y);
+}
+// Returns the category with the biggest % MoM change (thisMonth vs lastMonth).
+function categoryDelta(thisMonth, lastMonth) {
+  const byCat = {};
+  const bump = (id, key, amt) => {
+    byCat[id] = byCat[id] || { this: 0, last: 0 };
+    byCat[id][key] += amt;
+  };
+  thisMonth.forEach(e => bump(e.categoryId, 'this', e.amount));
+  lastMonth.forEach(e => bump(e.categoryId, 'last', e.amount));
+  let best = null;
+  Object.entries(byCat).forEach(([id, v]) => {
+    if (v.last <= 0) return; // need baseline to compute %
+    const pct = Math.round(((v.this - v.last) / v.last) * 100);
+    if (!best || pct > best.pct) {
+      const cat = state.categories.find(c => c.id === id);
+      if (cat) best = { category: cat, pct, thisTotal: v.this, lastTotal: v.last };
+    }
+  });
+  return best;
+}
+
 // ---------- CATEGORIES tab ----------
 document.getElementById('addCategoryBtn').onclick = () => openCategoryEditor(null);
 
@@ -1314,11 +2389,13 @@ function renderCategories() {
   const list = document.getElementById('categoryList');
   list.innerHTML = state.categories.map(c => {
     const count = state.expenses.filter(e => e.categoryId === c.id).length;
+    const bucket = BUCKETS.find(b => b.id === c.bucket);
+    const tag = bucket ? `<span class="bucket-tag ${bucket.id}">${escapeHtml(bucket.label)}</span>` : '';
     return `
       <div class="expense-row" data-id="${c.id}">
         <div class="expense-icon" style="background:${hexToRgba(c.color,0.18)};color:${c.color};">${c.emoji}</div>
         <div class="expense-main">
-          <div class="title">${escapeHtml(c.name)}</div>
+          <div class="title">${escapeHtml(c.name)} ${tag}</div>
           <div class="sub">${count} expense${count===1?'':'s'}</div>
         </div>
         <div style="color:var(--text-tertiary);">›</div>
@@ -1340,6 +2417,8 @@ function openCategoryEditor(id) {
   let name = existing?.name || '';
   let emoji = existing?.emoji || '🏷️';
   let color = existing?.color || COLOR_OPTIONS[1];
+  // Default new categories to Wants — safest classification; user can reassign.
+  let bucket = existing?.bucket || 'want';
 
   openModal({
     title: existing ? 'Edit Category' : 'New Category',
@@ -1351,6 +2430,13 @@ function openCategoryEditor(id) {
           <div class="card"><div class="row"><input type="text" id="cName" placeholder="e.g. Coffee" value="${escapeHtml(name)}"></div></div>
         </div>
         <div class="section" style="margin:0 0 16px;">
+          <div class="section-title">50 / 30 / 20 Bucket</div>
+          <div class="card" style="padding:10px;">
+            <div class="bucket-picker" id="bucketPicker"></div>
+            <div class="hint" id="bucketHint" style="padding:8px 4px 4px;"></div>
+          </div>
+        </div>
+        <div class="section" style="margin:0 0 16px;">
           <div class="section-title">Emoji</div>
           <div class="card" style="padding:10px;"><div class="grid-6" id="emojiGrid"></div></div>
         </div>
@@ -1360,6 +2446,33 @@ function openCategoryEditor(id) {
         </div>
         ${existing ? `<div class="section" style="margin:0;"><button class="btn btn-danger" id="cDelete">Delete Category</button></div>` : ''}
       `;
+      // Bucket picker — three segmented buttons for need/want/goal.
+      const bucketPicker = body.querySelector('#bucketPicker');
+      const bucketHint = body.querySelector('#bucketHint');
+      const refreshHint = () => {
+        const b = BUCKETS.find(x => x.id === bucket);
+        bucketHint.textContent = b ? `${b.label} (${Math.round(b.target*100)}%) — ${b.hint}` : '';
+      };
+      BUCKETS.forEach(b => {
+        const btn = document.createElement('button');
+        btn.className = 'bucket-chip' + (b.id === bucket ? ' active' : '');
+        btn.dataset.bucket = b.id;
+        btn.style.color = b.color;
+        if (b.id !== bucket) btn.style.background = hexToRgba(b.color, 0.15);
+        btn.innerHTML = `<span class="emoji">${b.id==='need'?'🏠':b.id==='want'?'🎉':'📈'}</span><span>${b.label}</span>`;
+        btn.onclick = () => {
+          bucket = b.id;
+          bucketPicker.querySelectorAll('button').forEach(x => {
+            const other = BUCKETS.find(z => z.id === x.dataset.bucket);
+            x.classList.toggle('active', x.dataset.bucket === bucket);
+            x.style.background = x.dataset.bucket === bucket ? '' : hexToRgba(other.color, 0.15);
+          });
+          refreshHint();
+        };
+        bucketPicker.appendChild(btn);
+      });
+      refreshHint();
+
       const emojiGrid = body.querySelector('#emojiGrid');
       EMOJI_OPTIONS.forEach(e => {
         const b = document.createElement('button');
@@ -1389,11 +2502,11 @@ function openCategoryEditor(id) {
         const newName = body.querySelector('#cName').value.trim();
         if (!newName) return false;
         if (existing) {
-          existing.name = newName; existing.emoji = emoji; existing.color = color;
+          existing.name = newName; existing.emoji = emoji; existing.color = color; existing.bucket = bucket;
         } else {
           state.categories.push({
             id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2,5),
-            name: newName, emoji, color,
+            name: newName, emoji, color, bucket,
           });
         }
         saveState();
@@ -1567,6 +2680,7 @@ function openSettings() {
     render: (body) => {
       const currentTheme = localStorage.getItem(THEME_KEY) || 'system';
       const budget = parseFloat(localStorage.getItem(BUDGET_KEY)) || 0;
+      const income = parseFloat(localStorage.getItem(INCOME_KEY)) || 0;
       body.innerHTML = `
         <div class="section" style="margin:0 0 16px;">
           <div class="section-title">Your Name</div>
@@ -1609,6 +2723,31 @@ function openSettings() {
         </div>
 
         <div class="section" style="margin:0 0 16px;">
+          <div class="section-title">Monthly Income (PKR)</div>
+          <div class="card">
+            <div class="row">
+              <span class="label">After-tax income</span>
+              <input type="number" inputmode="decimal" id="setIncome"
+                     placeholder="e.g. 200000"
+                     value="${income > 0 ? income : ''}"
+                     style="text-align:right; max-width: 160px;">
+            </div>
+            <div class="row" style="font-size:13px;color:var(--text-secondary);">
+              Used to size your 50 / 30 / 20 targets in the Insights tab.
+            </div>
+          </div>
+        </div>
+
+        <div class="section" style="margin:0 0 16px;">
+          <div class="section-title">Currencies &amp; Rates</div>
+          <div class="card" id="ratesCard">
+            <div class="row" style="font-size:13px;color:var(--text-secondary);">
+              Rates are “1 foreign = N PKR”. Toggle off currencies you don’t use.
+            </div>
+          </div>
+        </div>
+
+        <div class="section" style="margin:0 0 16px;">
           <div class="section-title">Data</div>
           <div class="card">
             <div class="row"><button class="btn-link" id="settingsImport">Import from CSV…</button></div>
@@ -1638,6 +2777,43 @@ function openSettings() {
         b.onclick = () => {
           applyTheme(b.dataset.theme);
           setSegActive(b.dataset.theme);
+        };
+      });
+
+      // --- Currency rates editor. One row per currency with an on/off toggle
+      //     and an inline rate input. PKR is always on + rate fixed at 1.
+      const ratesCard = body.querySelector('#ratesCard');
+      Object.keys(rates).forEach(code => {
+        const r = rates[code];
+        const row = document.createElement('div');
+        row.className = 'row';
+        const isBase = code === 'PKR';
+        row.innerHTML = `
+          <label style="display:flex; align-items:center; gap:10px; flex:1; cursor:${isBase?'default':'pointer'};">
+            <input type="checkbox" data-cur-enable="${code}" ${r.enabled?'checked':''} ${isBase?'disabled':''}>
+            <span style="display:inline-flex; align-items:center; gap:6px;">
+              <span style="width:28px; display:inline-block; text-align:center;">${escapeHtml(r.symbol)}</span>
+              <span style="font-weight:600;">${code}</span>
+              <span style="color:var(--text-secondary); font-size:12px;">${escapeHtml(r.name)}</span>
+            </span>
+          </label>
+          <input type="number" step="0.01" inputmode="decimal" data-cur-rate="${code}"
+                 value="${r.rate}" ${isBase?'disabled':''}
+                 style="text-align:right; max-width:90px;">
+        `;
+        ratesCard.appendChild(row);
+      });
+      ratesCard.querySelectorAll('[data-cur-enable]').forEach(cb => {
+        cb.onchange = () => {
+          const code = cb.dataset.curEnable;
+          rates[code].enabled = cb.checked;
+        };
+      });
+      ratesCard.querySelectorAll('[data-cur-rate]').forEach(inp => {
+        inp.onchange = () => {
+          const code = inp.dataset.curRate;
+          const v = parseFloat(inp.value);
+          if (v > 0) rates[code].rate = v;
         };
       });
 
@@ -1675,7 +2851,16 @@ function openSettings() {
         const v = parseFloat(body.querySelector('#setBudget').value);
         if (v > 0) localStorage.setItem(BUDGET_KEY, v);
         else localStorage.removeItem(BUDGET_KEY);
+        // Income for the 50/30/20 framework.
+        const iv = parseFloat(body.querySelector('#setIncome').value);
+        if (iv > 0) localStorage.setItem(INCOME_KEY, iv);
+        else localStorage.removeItem(INCOME_KEY);
+        // Currency rates + enable flags (rates object was mutated above).
+        saveRates();
+        // Refresh any tab that reads these values.
         renderAnalytics();
+        if (typeof renderInsights === 'function') renderInsights();
+        if (typeof renderAddTab === 'function') renderAddTab();
         return true;
       };
     },
