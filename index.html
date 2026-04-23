@@ -319,10 +319,31 @@
 
   /* ─── Pie / donut chart ─── */
   .pie-wrap {
-    padding: 16px 16px 20px;
+    padding: 16px 16px 12px;
     display: flex; justify-content: center; align-items: center;
   }
   .pie-wrap svg { width: 210px; height: 210px; overflow: visible; }
+
+  /* Slice pop-out: tapped slice gets scale + drop-shadow via transform */
+  .pie-slice { cursor: pointer; transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), opacity 0.15s; transform-origin: 100px 100px; }
+  .pie-slice:active { opacity: 0.85; }
+  .pie-slice.selected { transform: scale(1.07); filter: drop-shadow(0 4px 10px rgba(0,0,0,0.22)); }
+  .pie-slice.dimmed  { opacity: 0.32; }
+
+  /* Tooltip strip shown below the donut when a slice is selected */
+  #pieTooltip {
+    display: flex; align-items: center; gap: 10px;
+    margin: 0 16px 14px;
+    padding: 11px 14px;
+    border-radius: 12px;
+    background: var(--bg2);
+    animation: fadeIn 0.18s ease;
+  }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+  #pieTooltip .tip-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  #pieTooltip .tip-name { flex: 1; font-size: 14px; font-weight: 600; }
+  #pieTooltip .tip-amt  { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  #pieTooltip .tip-pct  { font-size: 12px; color: var(--text-secondary); margin-left: 4px; }
 
   /* Donut in Insights — larger, animated */
   .donut-wrap {
@@ -846,6 +867,8 @@
     <div class="section" id="pieSection">
       <div class="card">
         <div class="pie-wrap"><svg id="pieChart" viewBox="0 0 200 200"></svg></div>
+        <!-- Tap-to-reveal strip: shows category name + amount + % when a slice is tapped -->
+        <div id="pieTooltip" style="display:none;"></div>
       </div>
     </div>
 
@@ -2255,34 +2278,133 @@ function updateBudgetBar(total) {
 // SVG pie. For a single slice we draw a full circle; else arc segments.
 function drawPie(slices, total) {
   const svg = document.getElementById('pieChart');
-  const cx = 100, cy = 100, r = 80, rInner = 44;
-  let startAngle = -Math.PI / 2; // start at top
-  let paths = '';
+  const tip = document.getElementById('pieTooltip');
+  const cx = 100, cy = 100, R = 82, Ri = 46;
+  const F = '-apple-system, Helvetica, Arial, sans-serif';
+
+  // Centre label helpers — swapped in/out on tap
+  const centerLabel = svg.querySelector('#pieCenterLabel');
+  const totalStr = money(total);
+  const totalFontSize = totalStr.length > 12 ? 10 : totalStr.length > 9 ? 12 : 14;
+
+  let selectedIndex = null; // track which slice is active
+
+  // ── Build SVG paths ──────────────────────────────────────────────────────────
+  svg.innerHTML = ''; // clear
+
+  // Static centre text group (rewritten on tap)
+  const centreGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  centreGroup.id = 'pieCentre';
+  svg.appendChild(centreGroup);
+
+  const setCentre = (labelTxt, valueTxt, valueSize, labelColor) => {
+    centreGroup.innerHTML = `
+      <text x="${cx}" y="${cy - 8}" text-anchor="middle" font-size="10" font-family="${F}"
+            fill="${labelColor || 'var(--text-secondary)'}">${escapeHtml(labelTxt)}</text>
+      <text x="${cx}" y="${cy + 11}" text-anchor="middle" font-size="${valueSize}" font-weight="700"
+            font-family="${F}" fill="var(--text)">${escapeHtml(valueTxt)}</text>`;
+  };
+  setCentre('Total', totalStr, totalFontSize, null);
+
+  if (slices.length === 0) return;
+
+  // Single-slice: full ring, no interaction needed
   if (slices.length === 1) {
-    paths = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${slices[0].cat.color}"/>
-             <circle cx="${cx}" cy="${cy}" r="${rInner}" fill="var(--card)"/>`;
-  } else {
-    slices.forEach(s => {
-      const frac = s.total / total;
-      const angle = frac * Math.PI * 2;
-      const endAngle = startAngle + angle;
-      const large = angle > Math.PI ? 1 : 0;
-      const x1 = cx + r * Math.cos(startAngle);
-      const y1 = cy + r * Math.sin(startAngle);
-      const x2 = cx + r * Math.cos(endAngle);
-      const y2 = cy + r * Math.sin(endAngle);
-      const xi1 = cx + rInner * Math.cos(endAngle);
-      const yi1 = cy + rInner * Math.sin(endAngle);
-      const xi2 = cx + rInner * Math.cos(startAngle);
-      const yi2 = cy + rInner * Math.sin(startAngle);
-      paths += `<path d="M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} L ${xi1} ${yi1} A ${rInner} ${rInner} 0 ${large} 0 ${xi2} ${yi2} Z" fill="${s.cat.color}" stroke="var(--card)" stroke-width="1.5"/>`;
-      startAngle = endAngle;
-    });
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', cx); circle.setAttribute('cy', cy); circle.setAttribute('r', R);
+    circle.setAttribute('fill', slices[0].cat.color);
+    const hole = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    hole.setAttribute('cx', cx); hole.setAttribute('cy', cy); hole.setAttribute('r', Ri);
+    hole.setAttribute('fill', 'var(--card)');
+    svg.insertBefore(circle, centreGroup);
+    svg.insertBefore(hole, centreGroup);
+    return;
   }
-  // Shrink center-number font for long PKR amounts so it fits inside the donut.
-  const centerStr = money(total);
-  const fontSize = centerStr.length > 12 ? 11 : centerStr.length > 9 ? 13 : 15;
-  svg.innerHTML = paths + `<text x="100" y="94" text-anchor="middle" font-size="11" fill="var(--text-secondary)" font-family="-apple-system">Total</text><text x="100" y="114" text-anchor="middle" font-size="${fontSize}" font-weight="700" fill="var(--text)" font-family="-apple-system">${escapeHtml(centerStr)}</text>`;
+
+  // Multi-slice: donut arcs
+  const pathEls = [];
+  let startAngle = -Math.PI / 2;
+
+  slices.forEach((s, i) => {
+    const frac = s.total / total;
+    const sweep = frac * Math.PI * 2;
+    const end = startAngle + sweep;
+    const large = sweep > Math.PI ? 1 : 0;
+    // Outer arc
+    const x1 = cx + R * Math.cos(startAngle), y1 = cy + R * Math.sin(startAngle);
+    const x2 = cx + R * Math.cos(end),        y2 = cy + R * Math.sin(end);
+    // Inner arc (reversed)
+    const xi1 = cx + Ri * Math.cos(end),        yi1 = cy + Ri * Math.sin(end);
+    const xi2 = cx + Ri * Math.cos(startAngle), yi2 = cy + Ri * Math.sin(startAngle);
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d',
+      `M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${R} ${R} 0 ${large} 1 ${x2.toFixed(2)} ${y2.toFixed(2)} ` +
+      `L ${xi1.toFixed(2)} ${yi1.toFixed(2)} A ${Ri} ${Ri} 0 ${large} 0 ${xi2.toFixed(2)} ${yi2.toFixed(2)} Z`
+    );
+    path.setAttribute('fill', s.cat.color);
+    path.setAttribute('stroke', 'var(--card)');
+    path.setAttribute('stroke-width', '2');
+    path.classList.add('pie-slice');
+    path.dataset.index = i;
+
+    // ── Tap handler ─────────────────────────────────────────────────────────
+    const onTap = (e) => {
+      e.stopPropagation();
+      if (selectedIndex === i) {
+        // Second tap on same slice → deselect
+        selectedIndex = null;
+        pathEls.forEach(p => { p.classList.remove('selected', 'dimmed'); });
+        setCentre('Total', totalStr, totalFontSize, null);
+        if (tip) tip.style.display = 'none';
+        return;
+      }
+      selectedIndex = i;
+      pathEls.forEach((p, j) => {
+        p.classList.toggle('selected', j === i);
+        p.classList.toggle('dimmed', j !== i);
+      });
+      // Update centre: category emoji + %
+      const pct = Math.round(frac * 100);
+      const amtStr = money(s.total);
+      const amtSize = amtStr.length > 12 ? 10 : amtStr.length > 9 ? 12 : 14;
+      setCentre(`${s.cat.emoji} ${pct}%`, amtStr, amtSize, s.cat.color);
+      // Show tooltip strip
+      if (tip) {
+        tip.style.display = 'flex';
+        tip.innerHTML = `
+          <div class="tip-dot" style="background:${s.cat.color};"></div>
+          <span class="tip-name">${escapeHtml(s.cat.name)}</span>
+          <span class="tip-amt">${escapeHtml(money(s.total))}</span>
+          <span class="tip-pct">${pct}%</span>`;
+      }
+    };
+    path.addEventListener('click', onTap);
+    path.addEventListener('touchend', (e) => { e.preventDefault(); onTap(e); }, { passive: false });
+
+    svg.insertBefore(path, centreGroup);
+    pathEls.push(path);
+    startAngle = end;
+  });
+
+  // Tap on empty centre → deselect everything
+  centreGroup.style.cursor = 'pointer';
+  const deselect = () => {
+    if (selectedIndex === null) return;
+    selectedIndex = null;
+    pathEls.forEach(p => p.classList.remove('selected', 'dimmed'));
+    setCentre('Total', totalStr, totalFontSize, null);
+    if (tip) tip.style.display = 'none';
+  };
+  centreGroup.addEventListener('click', deselect);
+
+  // Tap anywhere outside the SVG → deselect
+  svg.addEventListener('click', (e) => {
+    if (e.target === svg) deselect();
+  });
+
+  // Hide tooltip when switching tabs or re-rendering
+  if (tip) tip.style.display = 'none';
 }
 
 // ---------- INSIGHTS tab (50/30/20 + advisor) ----------
