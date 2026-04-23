@@ -12,54 +12,91 @@
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <title>Expense Tracker</title>
 <style>
-  /* -------- Design tokens (light + dark) --------
-     Three-way theme: `html[data-theme="light"]` forces light, `...="dark"`
-     forces dark, anything else (`"system"` or unset) follows the OS. The
-     explicit overrides win because they're written *after* the media query. */
+  /* ═══════════════════════════════════════════════════════════
+     DESIGN TOKENS — Modern minimalist (Claude-inspired palette)
+     Light / Dark / System three-way theme.
+  ═══════════════════════════════════════════════════════════ */
   :root, html[data-theme="light"] {
-    --bg: #f2f2f7;
-    --card: #ffffff;
-    --text: #000;
-    --text-secondary: #8e8e93;
-    --text-tertiary: #c7c7cc;
-    --separator: rgba(60, 60, 67, 0.12);
-    --accent: #4ECDC4;
-    --danger: #ff3b30;
-    --warning: #ff9500;
-    --success: #34c759;
-    --input-bg: #efeff4;
-    --tabbar-bg: rgba(249, 249, 249, 0.94);
+    --bg:            #F5F4F2;
+    --bg2:           #ECEAE6;
+    --card:          #FFFFFF;
+    --card2:         #F9F8F6;
+    --text:          #1C1917;
+    --text-secondary:#6B7280;
+    --text-tertiary: #9CA3AF;
+    --separator:     rgba(28,25,23,0.08);
+    --accent:        #4ECDC4;
+    --accent-soft:   rgba(78,205,196,0.12);
+    --danger:        #E53935;
+    --danger-soft:   rgba(229,57,53,0.10);
+    --warning:       #F59E0B;
+    --warning-soft:  rgba(245,158,11,0.12);
+    --success:       #10B981;
+    --success-soft:  rgba(16,185,129,0.12);
+    --input-bg:      #ECEAE7;
+    --tabbar-bg:     rgba(245,244,242,0.92);
+    --shadow-sm:     0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md:     0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+    --shadow-lg:     0 8px 24px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.06);
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #000;
-      --card: #1c1c1e;
-      --text: #fff;
-      --text-secondary: #8e8e93;
-      --text-tertiary: #48484a;
-      --separator: rgba(84, 84, 88, 0.4);
-      --input-bg: #2c2c2e;
-      --tabbar-bg: rgba(28, 28, 30, 0.94);
+      --bg:            #0F0F0F;
+      --bg2:           #1A1A1A;
+      --card:          #1E1E1E;
+      --card2:         #242424;
+      --text:          #F0EEE9;
+      --text-secondary:#9CA3AF;
+      --text-tertiary: #4B5563;
+      --separator:     rgba(255,255,255,0.08);
+      --accent:        #4ECDC4;
+      --accent-soft:   rgba(78,205,196,0.15);
+      --danger:        #F87171;
+      --danger-soft:   rgba(248,113,113,0.12);
+      --warning:       #FBBF24;
+      --warning-soft:  rgba(251,191,36,0.12);
+      --success:       #34D399;
+      --success-soft:  rgba(52,211,153,0.12);
+      --input-bg:      #2A2A2A;
+      --tabbar-bg:     rgba(15,15,15,0.94);
+      --shadow-sm:     0 1px 3px rgba(0,0,0,0.30);
+      --shadow-md:     0 4px 12px rgba(0,0,0,0.40);
+      --shadow-lg:     0 8px 24px rgba(0,0,0,0.50);
     }
   }
   html[data-theme="dark"] {
-    --bg: #000;
-    --card: #1c1c1e;
-    --text: #fff;
-    --text-secondary: #8e8e93;
-    --text-tertiary: #48484a;
-    --separator: rgba(84, 84, 88, 0.4);
-    --input-bg: #2c2c2e;
-    --tabbar-bg: rgba(28, 28, 30, 0.94);
+    --bg:            #0F0F0F;
+    --bg2:           #1A1A1A;
+    --card:          #1E1E1E;
+    --card2:         #242424;
+    --text:          #F0EEE9;
+    --text-secondary:#9CA3AF;
+    --text-tertiary: #4B5563;
+    --separator:     rgba(255,255,255,0.08);
+    --accent:        #4ECDC4;
+    --accent-soft:   rgba(78,205,196,0.15);
+    --danger:        #F87171;
+    --danger-soft:   rgba(248,113,113,0.12);
+    --warning:       #FBBF24;
+    --warning-soft:  rgba(251,191,36,0.12);
+    --success:       #34D399;
+    --success-soft:  rgba(52,211,153,0.12);
+    --input-bg:      #2A2A2A;
+    --tabbar-bg:     rgba(15,15,15,0.94);
+    --shadow-sm:     0 1px 3px rgba(0,0,0,0.30);
+    --shadow-md:     0 4px 12px rgba(0,0,0,0.40);
+    --shadow-lg:     0 8px 24px rgba(0,0,0,0.50);
   }
 
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  /* ─── Reset + base ─── */
+  *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body {
     margin: 0; padding: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
     background: var(--bg); color: var(--text);
     -webkit-font-smoothing: antialiased;
     overscroll-behavior-y: contain;
+    font-size: 16px;
   }
   button, input, textarea, select {
     font: inherit; color: inherit;
@@ -67,393 +104,426 @@
   }
   button { cursor: pointer; }
 
-  /* -------- Layout shell -------- */
+  /* ─── Layout shell ─── */
   #app {
     min-height: 100vh;
-    padding-bottom: calc(80px + env(safe-area-inset-bottom));
+    padding-bottom: calc(84px + env(safe-area-inset-bottom));
     padding-top: env(safe-area-inset-top);
   }
+
+  /* ─── Header ─── */
   .header {
-    padding: 8px 20px 4px;
-    display: flex; align-items: baseline; justify-content: space-between;
+    padding: 14px 20px 8px;
+    display: flex; align-items: center; justify-content: space-between;
   }
-  .header h1 { font-size: 34px; font-weight: 700; margin: 0; letter-spacing: -0.5px; }
-  /* Small line above the heading — used for the "Good morning" greeting. */
+  .header-left { display: flex; flex-direction: column; }
+  .header h1 {
+    font-size: 30px; font-weight: 700; margin: 0;
+    letter-spacing: -0.8px; line-height: 1.1;
+  }
   .header .eyebrow {
-    font-size: 13px; font-weight: 500;
-    color: var(--text-secondary);
-    letter-spacing: 0.3px;
-    margin-bottom: 2px;
+    font-size: 12px; font-weight: 500;
+    color: var(--text-secondary); letter-spacing: 0.4px;
+    margin-bottom: 1px; text-transform: uppercase;
   }
-  .header .actions { display: flex; gap: 8px; }
-  .header .icon-btn {
-    width: 34px; height: 34px; border-radius: 17px;
-    background: var(--input-bg);
+  .header .actions { display: flex; gap: 8px; align-items: center; }
+  .icon-btn {
+    width: 36px; height: 36px; border-radius: 18px;
+    background: var(--card);
+    box-shadow: var(--shadow-sm);
     display: inline-flex; align-items: center; justify-content: center;
-    font-size: 17px;
+    font-size: 16px;
+    transition: transform 0.1s, box-shadow 0.1s;
   }
-  .section {
-    margin: 16px 20px;
-  }
+  .icon-btn:active { transform: scale(0.92); box-shadow: none; }
+
+  /* ─── Sections ─── */
+  .section { margin: 12px 16px; }
   .section-title {
-    font-size: 13px; font-weight: 400; text-transform: uppercase;
-    letter-spacing: 0.5px; color: var(--text-secondary);
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.7px; color: var(--text-secondary);
     padding: 0 4px 6px;
   }
+
+  /* ─── Cards ─── */
   .card {
     background: var(--card);
-    border-radius: 12px;
+    border-radius: 16px;
+    box-shadow: var(--shadow-sm);
     overflow: hidden;
   }
   .row {
     display: flex; align-items: center;
-    padding: 12px 16px;
-    min-height: 44px;
+    padding: 13px 16px;
+    min-height: 46px;
     border-bottom: 0.5px solid var(--separator);
   }
   .row:last-child { border-bottom: none; }
-  .row > .label { flex: 1; }
-  .row > .value { color: var(--text-secondary); }
+  .row > .label { flex: 1; font-size: 15px; }
+  .row > .value { color: var(--text-secondary); font-size: 15px; }
 
-  /* -------- Inputs -------- */
+  /* ─── Inputs ─── */
   input[type="number"], input[type="text"], input[type="date"], textarea, select {
-    width: 100%;
-    background: transparent;
-    padding: 0;
+    width: 100%; background: transparent; padding: 0;
   }
   input[type="number"].big {
-    font-size: 48px; font-weight: 700; text-align: center;
-    padding: 18px 0 4px;
-    letter-spacing: -1px;
+    font-size: 52px; font-weight: 700; text-align: center;
+    padding: 16px 0 4px; letter-spacing: -2px; color: var(--text);
   }
-  /* Amount-with-prefix layout: "Rs" sits inline so the user always knows the
-     currency without reading the hint line. */
   .amount-wrap {
-    display: flex; align-items: baseline; justify-content: center;
-    gap: 8px; padding: 4px 0;
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px; padding: 4px 16px 0;
   }
   .amount-wrap .amount-prefix {
-    font-size: 28px; font-weight: 600; color: var(--text-secondary);
-    padding-top: 14px;
+    font-size: 26px; font-weight: 600; color: var(--text-secondary);
+    padding-top: 8px; flex-shrink: 0;
   }
-  .amount-wrap input { width: auto; max-width: 60%; }
+  .amount-wrap input { width: auto; max-width: 55%; }
   .amount-wrap .cur-select {
     background: var(--input-bg);
-    border-radius: 8px;
-    padding: 6px 8px;
+    border-radius: 10px;
+    padding: 7px 10px;
     font-size: 13px; font-weight: 600;
     color: var(--text);
     align-self: center;
+    flex-shrink: 0;
   }
   .hint {
     text-align: center; color: var(--text-secondary);
-    font-size: 13px; padding-bottom: 14px;
+    font-size: 13px; padding: 4px 16px 14px;
   }
 
-  /* Summary bar at top of Add tab. */
+  /* ─── Summary bar (Add tab) ─── */
   .summary-bar {
-    display: flex; align-items: center;
-    background: var(--card); border-radius: 12px;
-    padding: 12px 4px;
+    display: flex; align-items: stretch;
+    background: var(--card);
+    border-radius: 16px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
   }
-  .summary-cell { flex: 1; text-align: center; }
+  .summary-cell {
+    flex: 1; text-align: center;
+    padding: 14px 8px;
+  }
   .summary-label {
-    font-size: 11px; font-weight: 500;
-    color: var(--text-secondary); letter-spacing: 0.5px;
-    text-transform: uppercase;
+    font-size: 10px; font-weight: 600;
+    color: var(--text-secondary); letter-spacing: 0.6px;
+    text-transform: uppercase; margin-bottom: 4px;
   }
   .summary-value {
-    font-size: 20px; font-weight: 700;
-    margin-top: 2px; letter-spacing: -0.3px;
+    font-size: 19px; font-weight: 700; letter-spacing: -0.5px;
   }
   .summary-divider {
-    width: 1px; align-self: stretch;
-    background: var(--separator); margin: 4px 0;
+    width: 0.5px; background: var(--separator); margin: 10px 0;
   }
 
-  /* -------- Buttons -------- */
+  /* ─── Buttons ─── */
   .btn {
     display: block; width: 100%;
-    padding: 18px 20px;
+    padding: 17px 20px;
     border-radius: 14px;
-    font-size: 18px; font-weight: 600;
+    font-size: 17px; font-weight: 600;
     text-align: center;
-    transition: opacity 0.15s, transform 0.05s;
+    transition: opacity 0.15s, transform 0.08s;
   }
-  .btn:active { opacity: 0.8; transform: scale(0.99); }
+  .btn:active { opacity: 0.82; transform: scale(0.98); }
   .btn-primary {
     background: var(--accent); color: #fff;
-    box-shadow: 0 4px 14px rgba(78,205,196,0.35);
+    box-shadow: 0 4px 16px rgba(78,205,196,0.38);
+    letter-spacing: 0.1px;
   }
-  .btn-primary:disabled { opacity: 0.35; box-shadow: none; }
-  .btn-danger { color: var(--danger); background: var(--card); }
+  .btn-primary:disabled { opacity: 0.32; box-shadow: none; }
+  .btn-danger { color: var(--danger); background: transparent; font-size: 16px; }
   .btn-link { color: var(--accent); background: none; font-weight: 500; padding: 8px 0; }
 
-  /* -------- Category chips -------- */
-  /* Wrap across multiple rows rather than horizontal scroll — every category
-     is visible at once, which cuts tap-to-select time. */
+  /* ─── Category chips ─── */
   .chips {
     display: flex; flex-wrap: wrap; gap: 8px;
-    padding: 4px 14px 14px;
+    padding: 10px 14px 14px;
   }
   .chip {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 10px 14px;
-    border-radius: 22px;
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 9px 13px;
+    border-radius: 24px;
     background: var(--input-bg);
-    font-size: 14px; font-weight: 500;
-    border: 2px solid transparent;
+    font-size: 13px; font-weight: 500;
+    border: 1.5px solid transparent;
     white-space: nowrap;
-    transition: transform 0.08s;
+    transition: transform 0.08s, box-shadow 0.08s;
   }
-  .chip:active { transform: scale(0.96); }
-  /* Active chip: solid fill in the category's color so selection is unmistakable. */
-  /* Active chip: bg and border pick up the category color from the inline
-     `style="color: <cat.color>"` on the button (via currentColor). Don't
-     overwrite `color` on the button itself, or currentColor collapses to
-     white and the pill disappears. Just force the child text/emoji white. */
+  .chip:active { transform: scale(0.95); }
   .chip.active {
-    background: currentColor !important;
     border-color: currentColor;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.18);
     transform: translateY(-1px);
   }
-  .chip.active > span,
-  .chip.active .emoji { color: #fff !important; }
-  .chip .emoji { font-size: 16px; }
+  .chip.active .chip-label { color: #fff !important; }
+  .chip-emoji { font-size: 15px; }
 
-  /* -------- Expense list rows -------- */
+  /* ─── Expense list rows ─── */
   .expense-row {
     display: flex; align-items: center; gap: 12px;
-    padding: 10px 16px;
+    padding: 11px 16px;
     border-bottom: 0.5px solid var(--separator);
+    transition: background 0.1s;
   }
   .expense-row:last-child { border-bottom: none; }
+  .expense-row:active { background: var(--bg2); }
   .expense-icon {
-    width: 40px; height: 40px; border-radius: 20px;
+    width: 42px; height: 42px; border-radius: 13px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 20px;
-    flex-shrink: 0;
+    font-size: 20px; flex-shrink: 0;
   }
   .expense-main { flex: 1; min-width: 0; }
-  .expense-main .title { font-size: 16px; font-weight: 500; }
+  .expense-main .title { font-size: 15px; font-weight: 500; }
   .expense-main .sub {
-    font-size: 13px; color: var(--text-secondary);
+    font-size: 12px; color: var(--text-secondary);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    margin-top: 1px;
   }
   .expense-amount {
-    font-size: 17px; font-weight: 600; margin-left: 8px;
+    font-size: 15px; font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    margin-left: 8px;
   }
 
-  /* -------- Analytics -------- */
+  /* ─── Analytics big total ─── */
   .big-total {
-    font-size: 44px; font-weight: 700; letter-spacing: -1px;
-    padding: 4px 16px 0;
+    padding: 16px 16px 4px;
   }
   .big-total .sub {
     display: block;
-    font-size: 13px; font-weight: 400; color: var(--text-secondary);
-    text-transform: uppercase; letter-spacing: 0.5px;
-    padding-bottom: 4px;
+    font-size: 11px; font-weight: 600; color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 0.6px;
+    margin-bottom: 4px;
+  }
+  .big-total .amount {
+    font-size: 40px; font-weight: 700; letter-spacing: -1.5px;
+    line-height: 1;
+  }
+  .big-total .delta {
+    font-size: 13px; font-weight: 500; color: var(--text-secondary);
+    margin-top: 3px;
   }
   .progress-track {
-    height: 6px; background: var(--input-bg); border-radius: 3px;
+    height: 5px; background: var(--input-bg); border-radius: 3px;
     overflow: hidden; margin-top: 8px;
   }
-  .progress-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+  .progress-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
   .warning-banner {
     font-size: 13px; font-weight: 500;
-    padding: 10px 14px; border-radius: 10px;
-    margin-top: 10px;
+    padding: 10px 14px; border-radius: 10px; margin-top: 10px;
   }
-  .warning-banner.orange { color: var(--warning); background: rgba(255,149,0,0.12); }
-  .warning-banner.red { color: var(--danger); background: rgba(255,59,48,0.12); }
+  .warning-banner.orange { color: var(--warning); background: var(--warning-soft); }
+  .warning-banner.red    { color: var(--danger);  background: var(--danger-soft);  }
 
-  .pie-wrap { padding: 8px 16px 16px; display: flex; justify-content: center; }
-  .pie-wrap svg { width: 200px; height: 200px; }
+  /* ─── Pie / donut chart ─── */
+  .pie-wrap {
+    padding: 16px 16px 20px;
+    display: flex; justify-content: center; align-items: center;
+  }
+  .pie-wrap svg { width: 210px; height: 210px; overflow: visible; }
 
+  /* Donut in Insights — larger, animated */
+  .donut-wrap {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 20px 16px 8px;
+  }
+  .donut-wrap svg { width: 240px; height: 240px; overflow: visible; }
+  .donut-legend {
+    display: flex; flex-wrap: wrap; gap: 8px 16px;
+    justify-content: center;
+    padding: 12px 16px 4px;
+  }
+  .donut-legend-item {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 500;
+  }
+  .donut-legend-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+
+  /* ─── Month switcher ─── */
   .month-switcher {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 0 20px;
+    padding: 4px 16px 0;
   }
-  .month-switcher h2 { margin: 0; font-size: 20px; font-weight: 600; }
+  .month-switcher h2 { margin: 0; font-size: 18px; font-weight: 600; }
   .month-switcher button {
-    width: 34px; height: 34px; border-radius: 17px;
+    width: 32px; height: 32px; border-radius: 16px;
     background: var(--input-bg);
     display: flex; align-items: center; justify-content: center;
-    font-size: 18px;
+    font-size: 17px; color: var(--accent);
   }
   .month-switcher button:disabled { opacity: 0.3; }
 
-  /* -------- Tab bar (pinned bottom) -------- */
+  /* ─── Tab bar ─── */
   .tabbar {
     position: fixed; bottom: 0; left: 0; right: 0;
     display: flex;
     background: var(--tabbar-bg);
-    -webkit-backdrop-filter: saturate(180%) blur(20px);
-    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(24px);
+    backdrop-filter: saturate(180%) blur(24px);
     border-top: 0.5px solid var(--separator);
     padding-bottom: env(safe-area-inset-bottom);
     z-index: 10;
   }
   .tabbar button {
     flex: 1;
-    display: flex; flex-direction: column; align-items: center; gap: 3px;
-    padding: 10px 0 8px;
-    font-size: 11px; font-weight: 500;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    padding: 9px 0 7px;
+    font-size: 10px; font-weight: 500;
     color: var(--text-secondary);
     transition: color 0.15s;
   }
-  .tabbar button .emoji { font-size: 24px; line-height: 1; }
-  .tabbar button.active { color: var(--accent); font-weight: 600; }
-  /* Subtle pill behind active tab icon for extra clarity. */
-  .tabbar button.active .emoji {
-    background: rgba(78,205,196,0.15);
-    border-radius: 10px;
-    padding: 2px 10px;
+  .tabbar .tab-icon {
+    font-size: 22px; line-height: 1;
+    width: 44px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 9px;
+    transition: background 0.15s;
   }
+  .tabbar button.active { color: var(--accent); font-weight: 600; }
+  .tabbar button.active .tab-icon { background: var(--accent-soft); }
 
-  /* -------- Modal -------- */
+  /* ─── Modal ─── */
   .modal-backdrop {
     position: fixed; inset: 0;
-    background: rgba(0,0,0,0.5);
+    background: rgba(0,0,0,0.45);
     display: flex; align-items: flex-end;
     z-index: 100;
+    backdrop-filter: blur(2px);
   }
   .modal {
     width: 100%;
     background: var(--bg);
-    border-radius: 16px 16px 0 0;
-    max-height: 90vh; overflow-y: auto;
-    padding-bottom: env(safe-area-inset-bottom);
-    animation: slideUp 0.25s ease-out;
+    border-radius: 20px 20px 0 0;
+    max-height: 92vh; overflow-y: auto;
+    padding-bottom: calc(env(safe-area-inset-bottom) + 8px);
+    animation: slideUp 0.28s cubic-bezier(0.32,0.72,0,1);
   }
   @keyframes slideUp {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
+    from { transform: translateY(100%); opacity: 0.6; }
+    to   { transform: translateY(0);    opacity: 1;   }
+  }
+  .modal-handle {
+    width: 36px; height: 4px; border-radius: 2px;
+    background: var(--text-tertiary);
+    margin: 10px auto 0;
   }
   .modal-header {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 16px;
+    padding: 12px 20px 12px;
     border-bottom: 0.5px solid var(--separator);
   }
   .modal-header h2 { margin: 0; font-size: 17px; font-weight: 600; }
   .modal-header button {
-    font-size: 17px; color: var(--accent);
-    min-width: 60px;
+    font-size: 16px; color: var(--accent);
+    min-width: 60px; padding: 4px 0;
   }
   .modal-header button.bold { font-weight: 600; }
   .modal-body { padding: 16px; }
 
-  /* -------- Icon + color grid for category editor -------- */
+  /* ─── Emoji / color grid ─── */
   .grid-6 {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 8px;
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px;
   }
   .grid-6 button {
     aspect-ratio: 1;
     display: flex; align-items: center; justify-content: center;
-    border-radius: 50%;
-    font-size: 22px;
+    border-radius: 12px; font-size: 22px;
     background: var(--input-bg);
+    transition: transform 0.08s;
   }
+  .grid-6 button:active { transform: scale(0.88); }
   .grid-6 button.active {
-    outline: 2px solid var(--accent);
+    outline: 2.5px solid var(--accent); outline-offset: 2px;
   }
-  .swatch {
-    aspect-ratio: 1;
-    border-radius: 50%;
-  }
-  .swatch.active { outline: 2px solid var(--text); outline-offset: 2px; }
+  .swatch { aspect-ratio: 1; border-radius: 50%; }
+  .swatch.active { outline: 2.5px solid var(--text); outline-offset: 2px; }
 
-  /* -------- Empty states -------- */
+  /* ─── Empty states ─── */
   .empty {
-    text-align: center; padding: 60px 20px;
+    text-align: center; padding: 48px 20px;
     color: var(--text-secondary);
   }
-  .empty .emoji { font-size: 48px; display: block; margin-bottom: 8px; }
+  .empty .emoji { font-size: 44px; display: block; margin-bottom: 10px; }
+  .empty p { font-size: 14px; margin: 0; }
 
-  /* -------- Segmented control (theme picker) -------- */
+  /* ─── Segmented control ─── */
   .segmented {
     display: flex; width: 100%;
-    background: var(--input-bg);
-    border-radius: 10px; padding: 3px;
-    gap: 2px;
+    background: var(--input-bg); border-radius: 12px;
+    padding: 3px; gap: 2px;
   }
   .segmented button {
-    flex: 1;
-    padding: 10px 12px;
+    flex: 1; padding: 9px 12px;
     font-size: 14px; font-weight: 500;
-    border-radius: 7px;
-    color: var(--text);
+    border-radius: 9px; color: var(--text);
     transition: background 0.15s;
   }
   .segmented button.active {
     background: var(--card);
     font-weight: 600;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    box-shadow: var(--shadow-sm);
   }
 
-  /* -------- Budget banner (bigger than a toast, interactive) -------- */
+  /* ─── Budget / alert banners ─── */
   .budget-toast {
     position: fixed; left: 12px; right: 12px;
-    top: calc(env(safe-area-inset-top) + 14px);
-    padding: 14px 16px;
-    border-radius: 14px;
-    font-size: 14px; font-weight: 600;
-    color: #fff;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-    z-index: 2000;
-    animation: toast-in 0.25s ease-out;
+    top: calc(env(safe-area-inset-top) + 12px);
+    padding: 14px 16px; border-radius: 16px;
+    font-size: 14px; font-weight: 600; color: #fff;
+    box-shadow: var(--shadow-lg); z-index: 2000;
+    animation: toast-in 0.28s cubic-bezier(0.32,0.72,0,1);
   }
   .budget-toast.warn { background: var(--warning); }
   .budget-toast.over { background: var(--danger); }
   @keyframes toast-in {
-    from { opacity: 0; transform: translateY(-12px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; transform: translateY(-16px) scale(0.96); }
+    to   { opacity: 1; transform: translateY(0)    scale(1);    }
   }
 
-  /* -------- Toast -------- */
+  /* ─── Toast ─── */
   .toast {
-    position: fixed; top: calc(env(safe-area-inset-top) + 10px);
+    position: fixed; top: calc(env(safe-area-inset-top) + 12px);
     left: 50%; transform: translateX(-50%);
-    background: var(--success); color: #fff;
-    padding: 8px 16px; border-radius: 16px;
+    background: var(--text); color: var(--bg);
+    padding: 9px 18px; border-radius: 20px;
     font-size: 13px; font-weight: 600;
-    z-index: 1000;
-    animation: toast 1.4s ease-out forwards;
+    z-index: 1000; white-space: nowrap;
+    box-shadow: var(--shadow-md);
+    animation: toast 1.6s ease-out forwards;
   }
   @keyframes toast {
-    0% { opacity: 0; transform: translate(-50%, -10px); }
-    15%,75% { opacity: 1; transform: translate(-50%, 0); }
-    100% { opacity: 0; transform: translate(-50%, -10px); }
+    0%      { opacity: 0; transform: translate(-50%, -12px) scale(0.9); }
+    12%,72% { opacity: 1; transform: translate(-50%, 0)     scale(1);   }
+    100%    { opacity: 0; transform: translate(-50%, -8px)  scale(0.95); }
   }
 
-  /* -------- Swipe-to-delete -------- */
+  /* ─── Swipe-to-delete ─── */
   .swipe-wrap { position: relative; overflow: hidden; }
   .swipe-action {
     position: absolute; top: 0; right: 0; bottom: 0;
     background: var(--danger); color: #fff;
-    display: flex; align-items: center; padding: 0 22px;
-    font-weight: 600; transform: translateX(100%); transition: transform 0.15s;
+    display: flex; align-items: center; padding: 0 24px;
+    font-weight: 600; font-size: 14px;
+    transform: translateX(100%); transition: transform 0.18s;
   }
   .swipe-wrap.open .swipe-action { transform: translateX(0); }
-  .swipe-wrap.open > .expense-row { transform: translateX(-88px); }
-  .swipe-wrap > .expense-row { transition: transform 0.15s; }
+  .swipe-wrap.open > .expense-row { transform: translateX(-90px); }
+  .swipe-wrap > .expense-row { transition: transform 0.18s; }
 
-  /* -------- Insights tab -------- */
-  /* Horizontal pill-group for quick date ranges (Day / Week / Month / …). */
+  /* ─── Range picker ─── */
   .range-picker {
-    display: flex; gap: 6px;
+    display: flex; gap: 5px;
     background: var(--input-bg);
-    padding: 4px; border-radius: 12px;
+    padding: 3px; border-radius: 13px;
   }
   .range-picker button {
-    flex: 1;
-    padding: 8px 4px;
-    border-radius: 9px;
-    font-size: 13px; font-weight: 500;
+    flex: 1; padding: 8px 3px;
+    border-radius: 10px;
+    font-size: 12px; font-weight: 500;
     color: var(--text-secondary);
     transition: all 0.15s;
   }
@@ -461,118 +531,149 @@
     background: var(--card);
     color: var(--text);
     font-weight: 600;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    box-shadow: var(--shadow-sm);
   }
   .range-label {
-    text-align: center; font-size: 12px; color: var(--text-secondary);
-    margin-top: 8px;
+    text-align: center; font-size: 11px;
+    color: var(--text-secondary); margin-top: 6px;
+    font-weight: 500; letter-spacing: 0.2px;
   }
 
-  /* 50/30/20 bucket bars: one row per bucket showing actual vs target share. */
-  .bucket-row { padding: 14px 16px; border-bottom: 0.5px solid var(--separator); }
+  /* ─── 50/30/20 bucket bars ─── */
+  .bucket-row {
+    padding: 14px 16px;
+    border-bottom: 0.5px solid var(--separator);
+  }
   .bucket-row:last-child { border-bottom: none; }
   .bucket-head {
     display: flex; justify-content: space-between; align-items: baseline;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
   }
   .bucket-name { font-weight: 600; font-size: 15px; }
   .bucket-target {
     font-size: 11px; color: var(--text-secondary);
-    letter-spacing: 0.3px; text-transform: uppercase;
-    margin-left: 6px;
+    letter-spacing: 0.3px; text-transform: uppercase; margin-left: 5px;
   }
   .bucket-totals { font-variant-numeric: tabular-nums; font-size: 14px; }
-  .bucket-totals .spent { font-weight: 600; }
-  .bucket-totals .of { color: var(--text-secondary); }
+  .bucket-totals .spent { font-weight: 700; }
+  .bucket-totals .of { color: var(--text-secondary); font-weight: 400; }
   .bucket-bar {
-    height: 8px; background: var(--input-bg); border-radius: 4px;
-    overflow: hidden; position: relative;
+    height: 7px; background: var(--input-bg); border-radius: 4px;
+    overflow: visible; position: relative;
   }
-  /* Dotted marker at the bucket's target % to show "here's your goal line". */
   .bucket-bar .target-line {
-    position: absolute; top: 0; bottom: 0; width: 2px;
-    background: rgba(0,0,0,0.25);
+    position: absolute; top: -2px; bottom: -2px; width: 2px;
+    background: rgba(0,0,0,0.20); border-radius: 1px;
   }
+  html[data-theme="dark"] .bucket-bar .target-line,
   @media (prefers-color-scheme: dark) {
-    .bucket-bar .target-line { background: rgba(255,255,255,0.4); }
+    .bucket-bar .target-line { background: rgba(255,255,255,0.30); }
   }
   .bucket-fill {
-    height: 100%; border-radius: 4px; transition: width 0.3s;
+    height: 100%; border-radius: 4px;
+    transition: width 0.5s cubic-bezier(0.34,1.56,0.64,1);
   }
   .bucket-hint {
-    font-size: 12px; color: var(--text-secondary);
-    margin-top: 6px;
+    font-size: 11px; color: var(--text-secondary); margin-top: 5px;
   }
 
-  /* Advisor cards: one per insight. Left-border color hints at severity. */
+  /* ─── Insight / advisor cards ─── */
   .insight-card {
-    background: var(--card); border-radius: 12px;
+    background: var(--card);
+    border-radius: 14px;
     padding: 14px 16px;
     margin-bottom: 10px;
-    border-left: 4px solid var(--accent);
+    border-left: 3px solid var(--accent);
+    box-shadow: var(--shadow-sm);
   }
-  .insight-card.warn { border-left-color: var(--warning); }
-  .insight-card.danger { border-left-color: var(--danger); }
-  .insight-card.ok { border-left-color: var(--success); }
+  .insight-card.warn   { border-left-color: var(--warning); background: var(--warning-soft); }
+  .insight-card.danger { border-left-color: var(--danger);  background: var(--danger-soft);  }
+  .insight-card.ok     { border-left-color: var(--success); background: var(--success-soft); }
   .insight-card .title {
-    font-size: 14px; font-weight: 600; margin-bottom: 4px;
-    display: flex; align-items: center; gap: 6px;
+    font-size: 14px; font-weight: 700; margin-bottom: 5px;
   }
   .insight-card .body {
-    font-size: 14px; line-height: 1.45; color: var(--text);
+    font-size: 14px; line-height: 1.5; color: var(--text);
   }
-  .insight-card .body strong { font-weight: 600; }
-  .insight-card .meta {
-    font-size: 12px; color: var(--text-secondary); margin-top: 6px;
-  }
-  .insight-card ul { margin: 6px 0 0; padding-left: 20px; font-size: 13px; }
-  .insight-card li { margin-bottom: 2px; }
+  .insight-card.warn .body,
+  .insight-card.danger .body,
+  .insight-card.ok .body { color: var(--text); }
+  .insight-card .body strong { font-weight: 700; }
+  .insight-card .meta { font-size: 12px; color: var(--text-secondary); margin-top: 6px; }
+  .insight-card ul { margin: 6px 0 0; padding-left: 18px; font-size: 13px; }
+  .insight-card li { margin-bottom: 3px; }
 
-  /* Tag pill used on category list + chips to show bucket */
+  /* ─── Bucket tags (pill on category rows) ─── */
   .bucket-tag {
     display: inline-block;
-    font-size: 10px; font-weight: 600; letter-spacing: 0.3px;
-    padding: 2px 6px; border-radius: 6px;
-    margin-left: 6px;
-    vertical-align: middle;
+    font-size: 9px; font-weight: 700; letter-spacing: 0.4px;
+    padding: 2px 6px; border-radius: 5px;
+    margin-left: 6px; vertical-align: middle;
     text-transform: uppercase;
   }
-  .bucket-tag.need { color: #4ECDC4; background: rgba(78,205,196,0.18); }
-  .bucket-tag.want { color: #FFA07A; background: rgba(255,160,122,0.18); }
-  .bucket-tag.goal { color: #34C759; background: rgba(52,199,89,0.18); }
+  .bucket-tag.need { color: #4ECDC4; background: rgba(78,205,196,0.15); }
+  .bucket-tag.want { color: #FFA07A; background: rgba(255,160,122,0.15); }
+  .bucket-tag.goal { color: #10B981; background: rgba(16,185,129,0.15); }
 
-  /* Three-way segmented picker for Needs/Wants/Goals in the category editor. */
+  /* ─── Bucket picker (in category editor) ─── */
   .bucket-picker {
     display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
   }
   .bucket-chip {
-    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-    padding: 10px 8px; border-radius: 10px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+    padding: 10px 6px; border-radius: 12px;
     font-size: 13px; font-weight: 600;
     transition: transform 0.1s;
   }
   .bucket-chip .emoji { font-size: 14px; }
-  .bucket-chip.active {
-    background: currentColor !important;
-  }
+  .bucket-chip.active { background: currentColor !important; }
   .bucket-chip.active > span:not(.emoji) { color: #fff; }
   .bucket-chip.active .emoji { filter: brightness(1.1); }
 
-  /* Print-only CSS — used when user taps "Export PDF". We strip chrome
-     (tab bar, headers) and lay out purely for A4 / letter paper. */
+  /* ─── Analytics breakdown bar per category ─── */
+  .cat-bar-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 16px;
+    border-bottom: 0.5px solid var(--separator);
+  }
+  .cat-bar-row:last-child { border-bottom: none; }
+  .cat-bar-icon {
+    width: 34px; height: 34px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; flex-shrink: 0;
+  }
+  .cat-bar-info { flex: 1; min-width: 0; }
+  .cat-bar-label {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 5px;
+  }
+  .cat-bar-name { font-size: 14px; font-weight: 500; }
+  .cat-bar-amount { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .cat-bar-track {
+    height: 4px; background: var(--input-bg); border-radius: 2px; overflow: hidden;
+  }
+  .cat-bar-fill { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
+  .cat-bar-pct {
+    font-size: 11px; font-weight: 500; color: var(--text-secondary);
+    min-width: 30px; text-align: right; flex-shrink: 0;
+  }
+
+  /* ─── Print / PDF export ─── */
   @media print {
-    .tabbar, .header .actions, .range-picker, #modalHost { display: none !important; }
+    .tabbar, .header .actions, .range-picker, #modalHost,
+    .month-switcher { display: none !important; }
     body { background: #fff !important; color: #000 !important; }
-    .tab-panel { display: block !important; break-inside: avoid; }
+    .tab-panel { display: block !important; }
     .tab-panel[data-panel="insights"] { display: block !important; }
     .tab-panel:not([data-panel="insights"]) { display: none !important; }
-    .card { box-shadow: none; border: 1px solid #ddd; }
+    .card { box-shadow: none !important; border: 1px solid #e5e5e5 !important; }
     .insight-card { page-break-inside: avoid; }
   }
 
-  /* Utility */
+  /* ─── Utility ─── */
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
+  .bold { font-weight: 600; }
 </style>
 </head>
 <body>
@@ -723,7 +824,11 @@
 
     <div class="section">
       <div class="card">
-        <div class="big-total"><span class="sub">Total spent</span><span id="monthTotal">$0.00</span></div>
+        <div class="big-total">
+          <span class="sub">Total spent</span>
+          <div class="amount" id="monthTotal">Rs 0</div>
+          <div class="delta" id="monthDelta"></div>
+        </div>
         <div style="padding: 0 16px 16px;">
           <div class="row" style="padding: 12px 0;">
             <span class="label">Monthly budget</span>
@@ -804,6 +909,16 @@
       </div>
     </div>
 
+    <!-- Dynamic donut chart: shows Needs/Wants/Goals split for the selected range -->
+    <div class="section" id="insightsDonutSection">
+      <div class="card">
+        <div class="donut-wrap">
+          <svg id="insightsDonut" viewBox="0 0 240 240"></svg>
+        </div>
+        <div class="donut-legend" id="insightsDonutLegend"></div>
+      </div>
+    </div>
+
     <!-- 50/30/20 framework -->
     <div class="section" id="bucketsSection">
       <div class="section-title">50 / 30 / 20 Framework</div>
@@ -850,11 +965,11 @@
 
 <!-- Tab bar -->
 <nav class="tabbar">
-  <button data-tab="add" class="active"><span class="emoji">➕</span>Add</button>
-  <button data-tab="history"><span class="emoji">📋</span>History</button>
-  <button data-tab="analytics"><span class="emoji">📊</span>Analytics</button>
-  <button data-tab="insights"><span class="emoji">💡</span>Insights</button>
-  <button data-tab="categories"><span class="emoji">🏷️</span>More</button>
+  <button data-tab="add" class="active"><span class="tab-icon">＋</span>Add</button>
+  <button data-tab="history"><span class="tab-icon">📋</span>History</button>
+  <button data-tab="analytics"><span class="tab-icon">📊</span>Reports</button>
+  <button data-tab="insights"><span class="tab-icon">💡</span>Insights</button>
+  <button data-tab="categories"><span class="tab-icon">⚙︎</span>More</button>
 </nav>
 
 <!-- Hidden file input used by the CSV-import flow. -->
@@ -1064,10 +1179,16 @@ function renderAddTab() {
     const btn = document.createElement('button');
     const isActive = c.id === selectedCategoryId;
     btn.className = 'chip' + (isActive ? ' active' : '');
-    btn.style.color = c.color;
-    // Inactive chips get a 15%-opacity tint of their color for a soft background.
-    if (!isActive) btn.style.background = hexToRgba(c.color, 0.15);
-    btn.innerHTML = `<span class="emoji">${c.emoji}</span><span>${escapeHtml(c.name)}</span>`;
+    if (isActive) {
+      // Active: solid fill + white text. Set explicitly so iOS doesn't mangle currentColor.
+      btn.style.background = c.color;
+      btn.style.color = c.color; // keeps currentColor in sync for border-color
+    } else {
+      btn.style.color = c.color;
+      btn.style.background = hexToRgba(c.color, 0.15);
+    }
+    // Force child text white when active — emoji wrapper keeps its color.
+    btn.innerHTML = `<span class="chip-emoji">${c.emoji}</span><span class="chip-label" style="${isActive ? 'color:#fff;' : ''}">${escapeHtml(c.name)}</span>`;
     btn.onclick = () => { selectedCategoryId = c.id; renderAddTab(); updateSaveEnabled(); };
     chipsEl.appendChild(btn);
   });
@@ -1658,77 +1779,240 @@ function rowFromMap(cols, map) {
 // Builds a self-contained SVG card for the month currently shown on the
 // Analytics tab, converts it to a PNG via an offscreen canvas, then shares
 // (or downloads as a fallback).
+// ─── Professional Analyst Report Image ────────────────────────────────────────
+// Generates a 1080×1920 (9:16) portrait card styled like a financial analyst
+// one-pager: header band, KPI row, donut chart, horizontal bar breakdown,
+// 50/30/20 allocation table, key analyst insight, branded footer.
 async function shareInsightsImage() {
   const y = viewedMonth.getFullYear(), m = viewedMonth.getMonth();
   const inMonth = state.expenses.filter(e => {
     const d = new Date(e.date);
     return d.getFullYear() === y && d.getMonth() === m;
   });
-  if (inMonth.length === 0) { showToast('No spending for this month'); return; }
+  if (inMonth.length === 0) { showToast('No data for this month'); return; }
 
+  const W = 1080, H = 1920;
+  const F = '-apple-system, Helvetica Neue, Arial, sans-serif';
+  const ACCENT = '#4ECDC4', DARK = '#1C1917', MED = '#6B7280', LIGHT = '#F5F4F2';
+  const CARD = '#FFFFFF';
+
+  // ── Data prep ───────────────────────────────────────────────────────────────
   const total = inMonth.reduce((s, e) => s + e.amount, 0);
-  const buckets = {};
+  const income = parseFloat(localStorage.getItem(INCOME_KEY)) || 0;
+  const who = getUserName() || null;
+  const monthLabel = viewedMonth.toLocaleString(locale, { month: 'long', year: 'numeric' });
+
+  // Previous month for MoM
+  const prevDate = new Date(y, m - 1, 1);
+  const prevMonth = state.expenses.filter(e => {
+    const d = new Date(e.date);
+    return d.getFullYear() === prevDate.getFullYear() && d.getMonth() === prevDate.getMonth();
+  });
+  const prevTotal = prevMonth.reduce((s, e) => s + e.amount, 0);
+  const momPct = prevTotal > 0 ? Math.round(((total - prevTotal) / prevTotal) * 100) : null;
+
+  // Category slices
+  const catMap = {};
   inMonth.forEach(e => {
     const cat = state.categories.find(c => c.id === e.categoryId) ||
-                { id: '_uncat', name: 'Uncategorized', color: '#8e8e93', emoji: '❔' };
-    if (!buckets[cat.id]) buckets[cat.id] = { cat, total: 0 };
-    buckets[cat.id].total += e.amount;
+                { id: '_u', name: 'Other', color: '#9CA3AF', emoji: '•' };
+    if (!catMap[cat.id]) catMap[cat.id] = { cat, total: 0 };
+    catMap[cat.id].total += e.amount;
   });
-  const slices = Object.values(buckets).sort((a, b) => b.total - a.total);
+  const slices = Object.values(catMap).sort((a, b) => b.total - a.total);
 
-  const W = 1080, H = 1350; // 4:5 portrait — looks good on social feeds.
-  const cx = W / 2, cy = 520, r = 280, rIn = 150;
+  // Bucket totals
+  const bt = bucketTotals(inMonth);
 
-  // Build the pie slices with simple fallback for single-slice case.
-  let piePath = '';
-  if (slices.length === 1) {
-    piePath = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${slices[0].cat.color}"/>
-               <circle cx="${cx}" cy="${cy}" r="${rIn}" fill="#ffffff"/>`;
+  // Savings rate
+  const savingsRate = income > 0 ? Math.max(0, Math.round(((income - total) / income) * 100)) : null;
+
+  // Top category
+  const top1 = slices[0];
+
+  // ── Analyst insight line ────────────────────────────────────────────────────
+  let insight = '';
+  if (momPct !== null && Math.abs(momPct) >= 5) {
+    insight = momPct > 0
+      ? `Spending rose ${momPct}% MoM, driven primarily by ${top1?.cat.name || 'top category'}. ` +
+        `Review discretionary Wants to rebalance.`
+      : `Spending fell ${Math.abs(momPct)}% MoM — strong discipline. ` +
+        `Consider directing the savings delta into Goals.`;
+  } else if (income > 0 && bt.goal / income < 0.2) {
+    insight = `Goals allocation is ${Math.round((bt.goal/income)*100)}% of income (target 20%). ` +
+              `Redirect ${money(income * 0.2 - bt.goal)}/month to close the gap.`;
+  } else if (income > 0 && total < income) {
+    insight = `Net surplus of ${money(income - total)} this month. ` +
+              `Invest it — compounded over 12 months = ${money((income - total) * 12)}/year.`;
   } else {
-    let a = -Math.PI / 2;
-    slices.forEach(s => {
-      const frac = s.total / total;
-      const b = a + frac * Math.PI * 2;
-      const large = (b - a) > Math.PI ? 1 : 0;
-      const x1 = cx + r * Math.cos(a), y1 = cy + r * Math.sin(a);
-      const x2 = cx + r * Math.cos(b), y2 = cy + r * Math.sin(b);
-      const xi1 = cx + rIn * Math.cos(b), yi1 = cy + rIn * Math.sin(b);
-      const xi2 = cx + rIn * Math.cos(a), yi2 = cy + rIn * Math.sin(a);
-      piePath += `<path d="M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} L ${xi1} ${yi1} A ${rIn} ${rIn} 0 ${large} 0 ${xi2} ${yi2} Z" fill="${s.cat.color}"/>`;
-      a = b;
+    insight = `Top spend: ${top1?.cat.name || 'N/A'} at ${money(top1?.total || 0)} ` +
+              `(${top1 ? ((top1.total/total)*100).toFixed(0) : 0}% of total). Monitor for recurring patterns.`;
+  }
+
+  // ── SVG builder helpers ──────────────────────────────────────────────────────
+  const xe = xmlEscape;
+  const T = (x, y, txt, sz, wt='400', fill=DARK, anchor='start', opts='') =>
+    `<text x="${x}" y="${y}" font-family="${F}" font-size="${sz}" font-weight="${wt}" fill="${fill}" text-anchor="${anchor}" ${opts}>${xe(txt)}</text>`;
+
+  // Donut (bucket-level) centred at (540, 620), R=210, r=120
+  const DX = 540, DY = 640, DR = 200, Dr = 116;
+  const DmR = (DR + Dr) / 2, DSW = DR - Dr;
+  let donutPaths = '';
+  const bucketSlices = BUCKETS.map(b => ({ label: b.label, value: bt[b.id] || 0, color: b.color })).filter(s => s.value > 0);
+  if (bucketSlices.length === 1) {
+    donutPaths = `<circle cx="${DX}" cy="${DY}" r="${DmR}" fill="none" stroke="${bucketSlices[0].color}" stroke-width="${DSW}"/>`;
+  } else if (bucketSlices.length > 1) {
+    let ang = -Math.PI / 2;
+    const GAP = 0.03;
+    bucketSlices.forEach(s => {
+      const sweep = (s.value / total) * Math.PI * 2 - GAP;
+      const x1 = DX + DmR * Math.cos(ang + GAP / 2);
+      const y1 = DY + DmR * Math.sin(ang + GAP / 2);
+      const x2 = DX + DmR * Math.cos(ang + sweep + GAP / 2);
+      const y2 = DY + DmR * Math.sin(ang + sweep + GAP / 2);
+      donutPaths += `<path d="M ${x1.toFixed(1)} ${y1.toFixed(1)} A ${DmR} ${DmR} 0 ${sweep > Math.PI ? 1 : 0} 1 ${x2.toFixed(1)} ${y2.toFixed(1)}" fill="none" stroke="${s.color}" stroke-width="${DSW}" stroke-linecap="round"/>`;
+      ang += sweep + GAP;
     });
   }
 
-  // Breakdown rows — top 6 categories to keep the card readable.
-  const topN = slices.slice(0, 6);
-  let rows = '';
-  topN.forEach((s, i) => {
+  // Donut legend pills
+  const legendItems = bucketSlices.map((s, i) => {
+    const pct = Math.round((s.value / total) * 100);
+    const lx = 160 + i * 260;
+    return `
+      <rect x="${lx}" y="870" width="16" height="16" rx="8" fill="${s.color}"/>
+      ${T(lx + 24, 883, `${s.label} ${pct}%`, 26, '500', MED)}`;
+  }).join('');
+
+  // Horizontal bar breakdown (top 5)
+  const BAR_TOP = 960, BAR_H = 54, BAR_MAX_W = 760, BAR_X = 160;
+  let barRows = '';
+  slices.slice(0, 5).forEach((s, i) => {
+    const bw = Math.max(8, (s.total / (slices[0].total || 1)) * BAR_MAX_W);
+    const by = BAR_TOP + i * (BAR_H + 18);
     const pct = ((s.total / total) * 100).toFixed(0);
-    const y0 = 880 + i * 65;
-    rows += `
-      <rect x="80" y="${y0 - 20}" width="40" height="40" rx="20" fill="${s.cat.color}"/>
-      <text x="140" y="${y0 + 8}" font-family="-apple-system, Helvetica" font-size="28" font-weight="600" fill="#1c1c1e">${xmlEscape(s.cat.name)}</text>
-      <text x="${W-80}" y="${y0 + 8}" text-anchor="end" font-family="-apple-system, Helvetica" font-size="28" font-weight="700" fill="#1c1c1e">${xmlEscape(money(s.total))}</text>
-      <text x="${W-80}" y="${y0 + 38}" text-anchor="end" font-family="-apple-system, Helvetica" font-size="18" fill="#8e8e93">${pct}%</text>`;
+    barRows += `
+      <rect x="${BAR_X}" y="${by}" width="${bw.toFixed(0)}" height="${BAR_H}" rx="10" fill="${s.cat.color}" opacity="0.85"/>
+      ${T(BAR_X, by - 8, `${s.cat.emoji || ''} ${s.cat.name}`, 24, '500', MED)}
+      ${T(BAR_X + bw + 12, by + 36, `${pct}% · ${xe(money(s.total))}`, 24, '600', DARK)}`;
   });
 
-  const monthLabel = viewedMonth.toLocaleString(locale, { month: 'long', year: 'numeric' });
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">
-    <rect width="${W}" height="${H}" fill="#f2f2f7"/>
-    <text x="${W/2}" y="100" text-anchor="middle" font-family="-apple-system, Helvetica" font-size="32" font-weight="600" fill="#8e8e93">My Expenses</text>
-    <text x="${W/2}" y="160" text-anchor="middle" font-family="-apple-system, Helvetica" font-size="48" font-weight="700" fill="#1c1c1e">${xmlEscape(monthLabel)}</text>
-    <text x="${W/2}" y="230" text-anchor="middle" font-family="-apple-system, Helvetica" font-size="72" font-weight="800" fill="#1c1c1e" letter-spacing="-2">${xmlEscape(money(total))}</text>
-    ${piePath}
-    <text x="${cx}" y="${cy + 8}" text-anchor="middle" font-family="-apple-system, Helvetica" font-size="28" fill="#8e8e93">${inMonth.length} entries</text>
-    ${rows}
-    <text x="${W/2}" y="${H - 50}" text-anchor="middle" font-family="-apple-system, Helvetica" font-size="22" fill="#8e8e93">Generated by Expense Tracker</text>
-  </svg>`;
+  // 50/30/20 table
+  const TBL_Y = 1310;
+  const bucketRows = BUCKETS.map((b, i) => {
+    const spent = bt[b.id] || 0;
+    const tgt = income > 0 ? income * b.target : 0;
+    const pct = income > 0 ? Math.round((spent / income) * 100) : Math.round((spent / Math.max(total, 1)) * 100);
+    const ry = TBL_Y + i * 70;
+    const barW = Math.min(700, (spent / Math.max(total, 1)) * 700);
+    const ok = income > 0 ? spent <= tgt : true;
+    return `
+      <rect x="80" y="${ry}" width="${barW.toFixed(0)}" height="14" rx="7" fill="${b.color}" opacity="0.25"/>
+      <rect x="80" y="${ry}" width="${Math.min(barW, barW).toFixed(0)}" height="14" rx="7" fill="${b.color}"/>
+      ${T(80, ry - 10, `${b.id==='need'?'🏠':b.id==='want'?'🎉':'📈'} ${b.label}`, 26, '600', b.color)}
+      ${T(W - 80, ry - 10, xe(money(spent)) + (income > 0 ? ` / ${xe(money(tgt))}` : ''), 24, '500', ok ? MED : '#E53935', 'end')}`;
+  }).join('');
 
-  // Render SVG → PNG via an offscreen canvas.
+  // ── Compose full SVG ─────────────────────────────────────────────────────────
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">
+  <defs>
+    <linearGradient id="hg" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0F3D3A"/>
+      <stop offset="100%" stop-color="#1A5754"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="12" flood-opacity="0.10"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="${W}" height="${H}" fill="${LIGHT}"/>
+
+  <!-- Header band -->
+  <rect width="${W}" height="230" fill="url(#hg)"/>
+  <rect x="0" y="200" width="${W}" height="60" fill="${LIGHT}" rx="30"/>
+  <rect x="0" y="230" width="${W}" height="30" fill="${LIGHT}"/>
+
+  <!-- Header text -->
+  ${T(80, 80, 'FINANCIAL SUMMARY REPORT', 22, '600', ACCENT, 'start', 'letter-spacing="3"')}
+  ${T(80, 140, who ? `${who}'s Spending Analysis` : 'Monthly Spending Analysis', 44, '700', '#FFFFFF')}
+  ${T(80, 188, monthLabel, 28, '400', 'rgba(255,255,255,0.65)')}
+
+  <!-- Generated date -->
+  ${T(W - 80, 100, new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}), 22, '400', 'rgba(255,255,255,0.5)', 'end')}
+
+  <!-- KPI cards row -->
+  <rect x="60" y="250" width="290" height="150" rx="16" fill="${CARD}" filter="url(#shadow)"/>
+  ${T(110, 300, 'TOTAL SPENT', 18, '600', MED, 'start', 'letter-spacing="1"')}
+  ${T(110, 360, xe(money(total)), total > 99999 ? 32 : 36, '700', DARK)}
+
+  <rect x="395" y="250" width="290" height="150" rx="16" fill="${CARD}" filter="url(#shadow)"/>
+  ${T(445, 300, 'MOM CHANGE', 18, '600', MED, 'start', 'letter-spacing="1"')}
+  ${T(445, 360, momPct !== null ? `${momPct > 0 ? '+' : ''}${momPct}%` : 'N/A', 36, '700', momPct === null ? MED : momPct > 10 ? '#E53935' : momPct < -5 ? '#10B981' : DARK)}
+
+  <rect x="730" y="250" width="290" height="150" rx="16" fill="${CARD}" filter="url(#shadow)"/>
+  ${T(780, 300, savingsRate !== null ? 'SAVINGS RATE' : 'ENTRIES', 18, '600', MED, 'start', 'letter-spacing="1"')}
+  ${T(780, 360, savingsRate !== null ? `${savingsRate}%` : String(inMonth.length), 36, '700', savingsRate !== null && savingsRate >= 20 ? '#10B981' : DARK)}
+
+  <!-- Donut chart section -->
+  <rect x="60" y="430" width="${W - 120}" height="490" rx="20" fill="${CARD}" filter="url(#shadow)"/>
+  ${T(W/2, 486, 'SPENDING BY BUCKET', 20, '600', MED, 'middle', 'letter-spacing="2"')}
+  ${donutPaths}
+  <!-- Donut centre -->
+  ${T(DX, DY - 20, 'Total', 26, '400', MED, 'middle')}
+  ${T(DX, DY + 20, xe(money(total)), total > 99999 ? 28 : 32, '700', DARK, 'middle')}
+  ${legendItems}
+
+  <!-- Bar breakdown section -->
+  <rect x="60" y="940" width="${W - 120}" height="330" rx="20" fill="${CARD}" filter="url(#shadow)"/>
+  ${T(W/2, 992, 'TOP CATEGORIES', 20, '600', MED, 'middle', 'letter-spacing="2"')}
+  ${barRows}
+
+  <!-- 50/30/20 section -->
+  <rect x="60" y="1290" width="${W - 120}" height="260" rx="20" fill="${CARD}" filter="url(#shadow)"/>
+  ${T(W/2, 1340, '50 / 30 / 20 ALLOCATION', 20, '600', MED, 'middle', 'letter-spacing="2"')}
+  ${bucketRows}
+
+  <!-- Analyst insight box -->
+  <rect x="60" y="1572" width="${W - 120}" height="200" rx="20" fill="#0F3D3A"/>
+  <rect x="60" y="1572" width="6" height="200" rx="3" fill="${ACCENT}"/>
+  ${T(110, 1618, '💡 ANALYST INSIGHT', 20, '700', ACCENT, 'start', 'letter-spacing="1"')}
+  ${wrapSvgText(insight, 110, 1660, W - 200, 26, '400', 'rgba(255,255,255,0.85)', F, 34)}
+
+  <!-- Footer -->
+  <rect x="0" y="1800" width="${W}" height="120" fill="#0F3D3A"/>
+  ${T(80, 1865, 'Expense Tracker · Personal Finance', 24, '400', 'rgba(255,255,255,0.5)')}
+  ${T(W - 80, 1865, new Date().getFullYear().toString(), 24, '400', 'rgba(255,255,255,0.4)', 'end')}
+  <rect x="${W/2 - 30}" y="1840" width="60" height="4" rx="2" fill="${ACCENT}" opacity="0.5"/>
+</svg>`;
+
   const blob = await svgToPngBlob(svg, W, H);
   if (!blob) { showToast('Could not create image'); return; }
-  await shareOrDownload(blob, `insights-${y}-${String(m+1).padStart(2,'0')}.png`,
-    `Expenses · ${monthLabel}`);
+  await shareOrDownload(blob,
+    `report-${y}-${String(m+1).padStart(2,'0')}.png`,
+    `Financial Report · ${monthLabel}`);
+}
+
+// Word-wrap helper for SVG text blocks.
+function wrapSvgText(text, x, y, maxW, fontSize, fontWeight, fill, fontFamily, lineH) {
+  const words = text.split(' ');
+  const lines = [];
+  let line = '';
+  // Rough char-width estimate: fontSize * 0.55
+  const cw = fontSize * 0.55;
+  const maxChars = Math.floor(maxW / cw);
+  words.forEach(w => {
+    if ((line + ' ' + w).trim().length <= maxChars) {
+      line = (line + ' ' + w).trim();
+    } else {
+      if (line) lines.push(line);
+      line = w;
+    }
+  });
+  if (line) lines.push(line);
+  return lines.slice(0, 3).map((l, i) =>
+    `<text x="${x}" y="${y + i * lineH}" font-family="${fontFamily}" font-size="${fontSize}" font-weight="${fontWeight}" fill="${fill}">${xmlEscape(l)}</text>`
+  ).join('');
 }
 
 function xmlEscape(s) {
@@ -1865,21 +2149,21 @@ function renderAnalytics() {
   updateBudgetBar(total);
 
   // Breakdown + pie.
-  const buckets = {};
+  const catMap = {};
   inMonth.forEach(e => {
     const cat = state.categories.find(c => c.id === e.categoryId) ||
                 { id: '_uncat', name: 'Uncategorized', color: '#8e8e93', emoji: '❔' };
-    if (!buckets[cat.id]) buckets[cat.id] = { cat, total: 0 };
-    buckets[cat.id].total += e.amount;
+    if (!catMap[cat.id]) catMap[cat.id] = { cat, total: 0 };
+    catMap[cat.id].total += e.amount;
   });
-  const slices = Object.values(buckets).sort((a, b) => b.total - a.total);
+  const slices = Object.values(catMap).sort((a, b) => b.total - a.total);
 
   const pieSection = document.getElementById('pieSection');
   const breakdownSection = document.getElementById('breakdownSection');
   const advisorSection = document.getElementById('analyticsAdvisorSection');
   if (slices.length === 0) {
     pieSection.style.display = 'none';
-    breakdownSection.innerHTML = `<div class="empty"><span class="emoji">📊</span>No spending in this range yet.</div>`;
+    breakdownSection.innerHTML = `<div class="empty"><span class="emoji">📊</span><p>No spending in this range yet.</p></div>`;
     advisorSection.style.display = 'none';
     return;
   }
@@ -1887,18 +2171,41 @@ function renderAnalytics() {
   advisorSection.style.display = '';
   drawPie(slices, total);
 
+  // Delta vs previous period for the month total
+  const [prevFrom2, prevTo2] = analyticsPreviousRange();
+  const prevTotal = state.expenses
+    .filter(e => e.date >= prevFrom2 && e.date <= prevTo2)
+    .reduce((s, e) => s + e.amount, 0);
+  const deltaEl = document.getElementById('monthDelta');
+  if (deltaEl && prevTotal > 0) {
+    const dpct = Math.round(((total - prevTotal) / prevTotal) * 100);
+    const dSign = dpct > 0 ? '+' : '';
+    deltaEl.textContent = `${dSign}${dpct}% vs previous period`;
+    deltaEl.style.color = dpct > 10 ? 'var(--danger)' : dpct < -5 ? 'var(--success)' : 'var(--text-secondary)';
+  } else if (deltaEl) { deltaEl.textContent = ''; }
+
+  // Enhanced breakdown: progress bar per category
+  const top = total;
   breakdownSection.innerHTML = `
     <div class="section-title">Breakdown</div>
     <div class="card">
-      ${slices.map(s => `
-        <div class="expense-row">
-          <div class="expense-icon" style="background:${hexToRgba(s.cat.color,0.18)};color:${s.cat.color};">${s.cat.emoji}</div>
-          <div class="expense-main">
-            <div class="title">${escapeHtml(s.cat.name)}</div>
-            <div class="sub">${((s.total/total)*100).toFixed(0)}%</div>
+      ${slices.map(s => {
+        const pct = (s.total / top) * 100;
+        return `
+        <div class="cat-bar-row">
+          <div class="cat-bar-icon" style="background:${hexToRgba(s.cat.color,0.15)};color:${s.cat.color};">${s.cat.emoji}</div>
+          <div class="cat-bar-info">
+            <div class="cat-bar-label">
+              <span class="cat-bar-name">${escapeHtml(s.cat.name)}</span>
+              <span class="cat-bar-amount">${money(s.total)}</span>
+            </div>
+            <div class="cat-bar-track">
+              <div class="cat-bar-fill" style="width:${pct.toFixed(1)}%;background:${s.cat.color};"></div>
+            </div>
           </div>
-          <div class="expense-amount">${money(s.total)}</div>
-        </div>`).join('')}
+          <span class="cat-bar-pct">${pct.toFixed(0)}%</span>
+        </div>`;
+      }).join('')}
     </div>`;
 
   // Inline advisor for whatever range is selected. Uses the same card engine
@@ -2053,6 +2360,99 @@ document.getElementById('exportPdfBtn').addEventListener('click', () => {
   setTimeout(() => window.print(), 200);
 });
 
+// ─── Animated SVG donut chart for Insights tab ───────────────────────────────
+// Draws a Needs / Wants / Goals donut that animates smoothly every render.
+// Falls back to category-level slices when no income is set.
+function drawInsightsDonut(expenses, totals) {
+  const svg = document.getElementById('insightsDonut');
+  const legend = document.getElementById('insightsDonutLegend');
+  if (!svg || !legend) return;
+
+  const cx = 120, cy = 120, R = 96, r = 58; // outer/inner radii
+  const total = totals.total;
+
+  if (total <= 0) {
+    svg.innerHTML = `
+      <circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="var(--input-bg)" stroke-width="${R-r}"/>
+      <text x="${cx}" y="${cy - 6}" text-anchor="middle" font-size="13" fill="var(--text-secondary)" font-family="-apple-system">No data</text>
+      <text x="${cx}" y="${cy + 14}" text-anchor="middle" font-size="12" fill="var(--text-tertiary)" font-family="-apple-system">for this range</text>`;
+    legend.innerHTML = '';
+    return;
+  }
+
+  // Build slices — bucket-level when income is set, category-level otherwise.
+  const income = parseFloat(localStorage.getItem(INCOME_KEY)) || 0;
+  let slices;
+  if (income > 0 || totals.need > 0 || totals.want > 0 || totals.goal > 0) {
+    // Bucket-level (Needs / Wants / Goals)
+    slices = BUCKETS
+      .map(b => ({ label: b.label, value: totals[b.id] || 0, color: b.color }))
+      .filter(s => s.value > 0);
+  } else {
+    // Fallback: per-category
+    const byCat = {};
+    expenses.forEach(e => {
+      const cat = state.categories.find(c => c.id === e.categoryId) || { name: 'Other', color: '#8e8e93' };
+      byCat[cat.name] = { value: (byCat[cat.name]?.value || 0) + e.amount, color: cat.color };
+    });
+    slices = Object.entries(byCat)
+      .sort((a, b) => b[1].value - a[1].value)
+      .slice(0, 6)
+      .map(([label, d]) => ({ label, value: d.value, color: d.color }));
+  }
+
+  // Generate SVG arcs
+  const circumference = 2 * Math.PI * ((R + r) / 2);
+  const strokeW = R - r;
+  const midR = (R + r) / 2;
+  let paths = '';
+  let startAngle = -Math.PI / 2;
+  const GAP = 0.025; // radians of gap between slices
+
+  slices.forEach((s, i) => {
+    const frac = s.value / total;
+    const sweep = frac * Math.PI * 2 - (slices.length > 1 ? GAP : 0);
+    const endAngle = startAngle + sweep + (slices.length > 1 ? GAP : 0);
+    const midAngle = startAngle + sweep / 2;
+
+    if (slices.length === 1) {
+      // Full ring for single slice
+      paths += `<circle cx="${cx}" cy="${cy}" r="${midR}" fill="none" stroke="${s.color}" stroke-width="${strokeW}" opacity="0.95"/>`;
+    } else {
+      const x1 = cx + midR * Math.cos(startAngle + GAP / 2);
+      const y1 = cy + midR * Math.sin(startAngle + GAP / 2);
+      const x2 = cx + midR * Math.cos(endAngle - GAP / 2);
+      const y2 = cy + midR * Math.sin(endAngle - GAP / 2);
+      const large = sweep > Math.PI ? 1 : 0;
+      paths += `<path d="M ${x1} ${y1} A ${midR} ${midR} 0 ${large} 1 ${x2} ${y2}"
+        fill="none" stroke="${s.color}" stroke-width="${strokeW}"
+        stroke-linecap="round" opacity="0.92"/>`;
+    }
+    startAngle = endAngle;
+  });
+
+  // Center text
+  const centerStr = money(total);
+  const centerFontSize = centerStr.length > 12 ? 11 : centerStr.length > 9 ? 12 : 14;
+  paths += `
+    <text x="${cx}" y="${cy - 7}" text-anchor="middle" font-size="11" font-weight="500"
+      fill="var(--text-secondary)" font-family="-apple-system">Total</text>
+    <text x="${cx}" y="${cy + 12}" text-anchor="middle" font-size="${centerFontSize}" font-weight="700"
+      fill="var(--text)" font-family="-apple-system">${escapeHtml(centerStr)}</text>`;
+
+  svg.innerHTML = paths;
+
+  // Legend
+  legend.innerHTML = slices.map(s => {
+    const pct = Math.round((s.value / total) * 100);
+    return `<div class="donut-legend-item">
+      <div class="donut-legend-dot" style="background:${s.color};"></div>
+      <span style="color:var(--text-secondary);">${escapeHtml(s.label)}</span>
+      <span style="font-weight:600;">${pct}%</span>
+    </div>`;
+  }).join('');
+}
+
 // Master renderer for the Insights tab — called on tab switch + whenever a
 // relevant input (income, range, custom dates) changes.
 function renderInsights() {
@@ -2078,6 +2478,9 @@ function renderInsights() {
   const expenses = rangedExpenses();
   const totals = bucketTotals(expenses);
 
+  // Dynamic donut
+  drawInsightsDonut(expenses, totals);
+
   // 50/30/20 bucket bars.
   document.getElementById('bucketsCard').innerHTML = BUCKETS.map(b => {
     const spent = totals[b.id] || 0;
@@ -2085,33 +2488,33 @@ function renderInsights() {
     const denominator = income > 0 ? income : Math.max(totals.total, 1);
     const ratio = spent / denominator;
     const widthPct = Math.min(ratio * 100, 100);
-    // Where does the target line sit on the bar? At b.target * 100% if income set.
     const targetPct = income > 0 ? b.target * 100 : null;
+    const overBudget = income > 0 && spent > target;
+    const fillColor = overBudget ? 'var(--danger)' : b.color;
     return `
       <div class="bucket-row">
         <div class="bucket-head">
           <div>
-            <span class="bucket-name" style="color:${b.color};">${b.label}</span>
+            <span class="bucket-name" style="color:${b.color};">${b.id==='need'?'🏠':b.id==='want'?'🎉':'📈'} ${b.label}</span>
             <span class="bucket-target">${Math.round(b.target*100)}% target</span>
           </div>
           <div class="bucket-totals">
-            <span class="spent">${money(spent)}</span>
+            <span class="spent" style="color:${overBudget?'var(--danger)':''}">${money(spent)}</span>
             ${income > 0 ? `<span class="of"> / ${money(target)}</span>` : ''}
           </div>
         </div>
         <div class="bucket-bar">
-          <div class="bucket-fill" style="width:${widthPct}%;background:${b.color};"></div>
-          ${targetPct !== null ? `<div class="target-line" style="left:${targetPct}%;"></div>` : ''}
+          <div class="bucket-fill" style="width:${widthPct}%;background:${fillColor};"></div>
+          ${targetPct !== null ? `<div class="target-line" style="left:${Math.min(targetPct,99)}%;"></div>` : ''}
         </div>
         <div class="bucket-hint">${b.hint}</div>
       </div>`;
   }).join('');
 
-  // Per-bucket line items: every expense in this range, grouped.
+  // Per-bucket line items.
   renderBucketLineItems(expenses, totals);
 
-  // Advisor cards — rule-based heuristics run against thisMonth vs lastMonth
-  // (irrespective of the range picker, since MoM is always calendar months).
+  // Advisor cards (always calendar-month based for consistency).
   renderAdvisor(income);
 }
 
@@ -2524,6 +2927,7 @@ function openModal({ title, rightBtn, render }) {
   host.innerHTML = `
     <div class="modal-backdrop" id="modalBackdrop">
       <div class="modal">
+        <div class="modal-handle"></div>
         <div class="modal-header">
           <button id="modalCancel">Cancel</button>
           <h2>${escapeHtml(title)}</h2>
