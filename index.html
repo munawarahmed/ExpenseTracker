@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Expenses">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#4ECDC4">
+<meta name="theme-color" content="#9B8EC4">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon.svg">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
@@ -27,6 +27,9 @@
     --separator:     rgba(28,25,23,0.08);
     --accent:        #4ECDC4;
     --accent-soft:   rgba(78,205,196,0.12);
+    --purple:        #9B8EC4;
+    --purple-soft:   rgba(155,142,196,0.15);
+    --purple-mid:    rgba(155,142,196,0.50);
     --danger:        #E53935;
     --danger-soft:   rgba(229,57,53,0.10);
     --warning:       #F59E0B;
@@ -34,7 +37,7 @@
     --success:       #10B981;
     --success-soft:  rgba(16,185,129,0.12);
     --input-bg:      #ECEAE7;
-    --tabbar-bg:     rgba(245,244,242,0.92);
+    --tabbar-bg:     rgba(245,244,242,0.94);
     --shadow-sm:     0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
     --shadow-md:     0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
     --shadow-lg:     0 8px 24px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.06);
@@ -51,6 +54,9 @@
       --separator:     rgba(255,255,255,0.08);
       --accent:        #4ECDC4;
       --accent-soft:   rgba(78,205,196,0.15);
+      --purple:        #B8ADDC;
+      --purple-soft:   rgba(184,173,220,0.15);
+      --purple-mid:    rgba(184,173,220,0.40);
       --danger:        #F87171;
       --danger-soft:   rgba(248,113,113,0.12);
       --warning:       #FBBF24;
@@ -75,6 +81,9 @@
     --separator:     rgba(255,255,255,0.08);
     --accent:        #4ECDC4;
     --accent-soft:   rgba(78,205,196,0.15);
+    --purple:        #B8ADDC;
+    --purple-soft:   rgba(184,173,220,0.15);
+    --purple-mid:    rgba(184,173,220,0.40);
     --danger:        #F87171;
     --danger-soft:   rgba(248,113,113,0.12);
     --warning:       #FBBF24;
@@ -140,8 +149,8 @@
   /* ─── Sections ─── */
   .section { margin: 12px 16px; }
   .section-title {
-    font-size: 11px; font-weight: 600; text-transform: uppercase;
-    letter-spacing: 0.7px; color: var(--text-secondary);
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.8px; color: var(--purple);
     padding: 0 4px 6px;
   }
 
@@ -166,32 +175,49 @@
   input[type="number"], input[type="text"], input[type="date"], textarea, select {
     width: 100%; background: transparent; padding: 0;
   }
-  input[type="number"].big {
-    font-size: 52px; font-weight: 700; text-align: center;
-    padding: 16px 0 4px; letter-spacing: -2px; color: var(--text);
+  /* ── Amount card: stacked layout so the number never overflows ── */
+  .amount-card-inner {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 14px 16px 16px;
   }
-  .amount-wrap {
-    display: flex; align-items: center; justify-content: center;
-    gap: 8px; padding: 4px 16px 0;
-  }
-  .amount-wrap .amount-prefix {
-    font-size: 26px; font-weight: 600; color: var(--text-secondary);
-    padding-top: 8px; flex-shrink: 0;
-  }
-  .amount-wrap input { width: auto; max-width: 55%; }
-  .amount-wrap .cur-select {
-    background: var(--input-bg);
-    border-radius: 10px;
-    padding: 7px 10px;
-    font-size: 13px; font-weight: 600;
-    color: var(--text);
+  /* Currency pill sits at the top, centred, tappable */
+  .cur-select {
+    background: var(--purple-soft);
+    color: var(--purple);
+    border: 1.5px solid var(--purple-mid);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 13px; font-weight: 700;
+    letter-spacing: 0.3px;
+    margin-bottom: 4px;
+    cursor: pointer;
     align-self: center;
-    flex-shrink: 0;
+  }
+  /* Big number row: Rs prefix + number, both centred, number takes the room it needs */
+  .amount-row {
+    display: flex; align-items: baseline; justify-content: center;
+    width: 100%; gap: 6px;
+  }
+  .amount-prefix {
+    font-size: 24px; font-weight: 600;
+    color: var(--text-secondary); flex-shrink: 0;
+    padding-bottom: 6px;
+  }
+  input[type="number"].big {
+    font-size: 56px; font-weight: 700; text-align: left;
+    letter-spacing: -2px; color: var(--text);
+    /* Grow to fill available space but never push siblings off screen */
+    flex: 1; min-width: 0; width: 0;
+    padding: 8px 0 6px;
+    background: transparent;
   }
   .hint {
-    text-align: center; color: var(--text-secondary);
-    font-size: 13px; padding: 4px 16px 14px;
+    font-size: 12px; color: var(--text-secondary);
+    margin-top: 2px; letter-spacing: 0.1px;
   }
+
+  /* Legacy selector kept for any other selects in the app */
+  .amount-wrap { display: flex; align-items: center; justify-content: center; }
 
   /* ─── Summary bar (Add tab) ─── */
   .summary-bar {
@@ -200,6 +226,7 @@
     border-radius: 16px;
     box-shadow: var(--shadow-sm);
     overflow: hidden;
+    border: 1px solid var(--purple-soft);
   }
   .summary-cell {
     flex: 1; text-align: center;
@@ -212,6 +239,7 @@
   }
   .summary-value {
     font-size: 19px; font-weight: 700; letter-spacing: -0.5px;
+    color: var(--purple);
   }
   .summary-divider {
     width: 0.5px; background: var(--separator); margin: 10px 0;
@@ -228,13 +256,13 @@
   }
   .btn:active { opacity: 0.82; transform: scale(0.98); }
   .btn-primary {
-    background: var(--accent); color: #fff;
-    box-shadow: 0 4px 16px rgba(78,205,196,0.38);
+    background: var(--purple); color: #fff;
+    box-shadow: 0 4px 16px var(--purple-mid);
     letter-spacing: 0.1px;
   }
   .btn-primary:disabled { opacity: 0.32; box-shadow: none; }
   .btn-danger { color: var(--danger); background: transparent; font-size: 16px; }
-  .btn-link { color: var(--accent); background: none; font-weight: 500; padding: 8px 0; }
+  .btn-link { color: var(--purple); background: none; font-weight: 500; padding: 8px 0; }
 
   /* ─── Category chips ─── */
   .chips {
@@ -374,7 +402,7 @@
     width: 32px; height: 32px; border-radius: 16px;
     background: var(--input-bg);
     display: flex; align-items: center; justify-content: center;
-    font-size: 17px; color: var(--accent);
+    font-size: 17px; color: var(--purple);
   }
   .month-switcher button:disabled { opacity: 0.3; }
 
@@ -404,8 +432,8 @@
     border-radius: 9px;
     transition: background 0.15s;
   }
-  .tabbar button.active { color: var(--accent); font-weight: 600; }
-  .tabbar button.active .tab-icon { background: var(--accent-soft); }
+  .tabbar button.active { color: var(--purple); font-weight: 600; }
+  .tabbar button.active .tab-icon { background: var(--purple-soft); }
 
   /* ─── Modal ─── */
   .modal-backdrop {
@@ -731,12 +759,14 @@
     <div class="section">
       <div class="section-title">Amount</div>
       <div class="card">
-        <div class="amount-wrap">
-          <span class="amount-prefix" id="amountPrefix">Rs</span>
-          <input type="number" id="amount" class="big" inputmode="decimal" step="1" placeholder="0">
+        <div class="amount-card-inner">
           <select id="amountCurrency" class="cur-select" aria-label="Currency"></select>
+          <div class="amount-row">
+            <span class="amount-prefix" id="amountPrefix">Rs</span>
+            <input type="number" id="amount" class="big" inputmode="decimal" step="1" placeholder="0">
+          </div>
+          <div class="hint" id="currencyHint">Pakistani Rupee</div>
         </div>
-        <div class="hint" id="currencyHint">Pakistani Rupee</div>
       </div>
     </div>
 

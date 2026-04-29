@@ -1,7 +1,7 @@
 // Minimal service worker so the PWA "Add to Home Screen" works reliably on
 // iOS Safari and Chrome. Caches the app shell on install and serves it
 // offline — so the tracker keeps working without a network connection.
-const CACHE = 'expense-tracker-v6';
+const CACHE = 'expense-tracker-v7';
 const ASSETS = [
   './',
   './index.html',
