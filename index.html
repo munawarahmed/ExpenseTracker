@@ -206,8 +206,9 @@
   input[type="number"].big {
     font-size: 56px; font-weight: 700; text-align: left;
     letter-spacing: -2px; color: var(--text);
-    /* Grow to fill available space but never push siblings off screen */
-    flex: 1; min-width: 0; width: 0;
+    /* flex:1 sets flex-basis:0% in flex context (amount-row) so it grows correctly.
+       width:100% from the general rule applies in non-flex contexts (edit modal). */
+    flex: 1; min-width: 0;
     padding: 8px 0 6px;
     background: transparent;
   }
@@ -441,6 +442,7 @@
     background: rgba(0,0,0,0.45);
     display: flex; align-items: flex-end;
     z-index: 100;
+    -webkit-backdrop-filter: blur(2px);
     backdrop-filter: blur(2px);
   }
   .modal {
@@ -448,6 +450,7 @@
     background: var(--bg);
     border-radius: 20px 20px 0 0;
     max-height: 92vh; overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     padding-bottom: calc(env(safe-area-inset-bottom) + 8px);
     animation: slideUp 0.28s cubic-bezier(0.32,0.72,0,1);
   }
@@ -467,7 +470,7 @@
   }
   .modal-header h2 { margin: 0; font-size: 17px; font-weight: 600; }
   .modal-header button {
-    font-size: 16px; color: var(--accent);
+    font-size: 16px; color: var(--purple);
     min-width: 60px; padding: 4px 0;
   }
   .modal-header button.bold { font-weight: 600; }
@@ -614,7 +617,9 @@
     position: absolute; top: -2px; bottom: -2px; width: 2px;
     background: rgba(0,0,0,0.20); border-radius: 1px;
   }
-  html[data-theme="dark"] .bucket-bar .target-line,
+  html[data-theme="dark"] .bucket-bar .target-line {
+    background: rgba(255,255,255,0.30);
+  }
   @media (prefers-color-scheme: dark) {
     .bucket-bar .target-line { background: rgba(255,255,255,0.30); }
   }
@@ -718,6 +723,25 @@
     .card { box-shadow: none !important; border: 1px solid #e5e5e5 !important; }
     .insight-card { page-break-inside: avoid; }
   }
+
+  /* ─── Cross-platform compat ─── */
+  /* Remove number-input spinner arrows on Chrome/Android */
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  input[type="number"] { -moz-appearance: textfield; }
+
+  /* Prevent iOS from overriding custom input/select styles */
+  input[type="text"], input[type="number"], input[type="date"], textarea {
+    -webkit-appearance: none;
+  }
+  /* Currency pill: remove native iOS dropdown chrome so our purple pill shows */
+  .cur-select {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  /* Prevent double-tap zoom on buttons / chips on iOS */
+  button, .chip, .tab-icon, .icon-btn { touch-action: manipulation; }
 
   /* ─── Utility ─── */
   .tab-panel { display: none; }
@@ -1434,23 +1458,28 @@ function renderHistory() {
 
 // Simple swipe-to-reveal-delete handler (touch + mouse).
 function attachSwipe(wrap) {
-  let startX = null, dx = 0;
+  let startX = null, startY = null, dx = 0, isHorizontal = null;
   const row = wrap.querySelector('.expense-row');
   const onStart = e => {
     const pt = e.touches ? e.touches[0] : e;
-    startX = pt.clientX; dx = 0;
+    startX = pt.clientX; startY = pt.clientY; dx = 0; isHorizontal = null;
   };
   const onMove = e => {
     if (startX === null) return;
     const pt = e.touches ? e.touches[0] : e;
     dx = pt.clientX - startX;
-    if (dx < 0 && dx > -88) row.style.transform = `translateX(${dx}px)`;
+    const dy = pt.clientY - startY;
+    // Lock direction on first significant move — ignore near-vertical swipes.
+    if (isHorizontal === null && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) {
+      isHorizontal = Math.abs(dx) > Math.abs(dy);
+    }
+    if (isHorizontal && dx < 0 && dx > -88) row.style.transform = `translateX(${dx}px)`;
   };
   const onEnd = () => {
     row.style.transform = '';
-    if (dx < -40) wrap.classList.add('open');
+    if (isHorizontal && dx < -40) wrap.classList.add('open');
     else wrap.classList.remove('open');
-    startX = null; dx = 0;
+    startX = null; startY = null; dx = 0; isHorizontal = null;
   };
   row.addEventListener('touchstart', onStart, { passive: true });
   row.addEventListener('touchmove', onMove, { passive: true });
@@ -1468,7 +1497,12 @@ function editExpense(id) {
       body.innerHTML = `
         <div class="section" style="margin:0 0 16px;">
           <div class="card">
-            <input type="number" id="eAmount" class="big" step="0.01" inputmode="decimal" value="${e.amount}">
+            <div class="amount-card-inner">
+              <div class="amount-row">
+                <span class="amount-prefix">Rs</span>
+                <input type="number" id="eAmount" class="big" step="0.01" inputmode="decimal" value="${e.amount}">
+              </div>
+            </div>
           </div>
         </div>
         <div class="section" style="margin:0 0 16px;">
@@ -3220,7 +3254,7 @@ function applyTheme(mode) {
     ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
     : mode;
   document.querySelector('meta[name="theme-color"]')
-    ?.setAttribute('content', resolved === 'dark' ? '#000000' : '#4ECDC4');
+    ?.setAttribute('content', resolved === 'dark' ? '#0F0F0F' : '#9B8EC4');
 }
 // Apply saved theme immediately so the first paint is correct.
 applyTheme(localStorage.getItem(THEME_KEY) || 'system');
