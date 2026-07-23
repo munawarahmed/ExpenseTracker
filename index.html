@@ -1051,6 +1051,8 @@
 
 <!-- Hidden file input used by the CSV-import flow. -->
 <input type="file" id="importFile" accept=".csv,text/csv" style="display:none;">
+<!-- Hidden file input used by the JSON backup-restore flow. -->
+<input type="file" id="importBackupFile" accept=".json,application/json" style="display:none;">
 
 <!-- Modal host -->
 <div id="modalHost"></div>
@@ -2127,6 +2129,191 @@ function svgToPngBlob(svg, w, h) {
   });
 }
 document.getElementById('shareInsightsBtn').onclick = shareInsightsImage;
+
+// ---------- Full backup (JSON) ----------
+// Bundles every user-editable value in the app into a single JSON blob:
+// expenses + categories, plus name / budget / income / rates / theme.
+// Round-trips via applyBackup() below.
+const BACKUP_VERSION = 1;
+function buildBackup() {
+  return {
+    schema: 'expenseTracker.backup',
+    version: BACKUP_VERSION,
+    exportedAt: new Date().toISOString(),
+    state,
+    settings: {
+      name:   localStorage.getItem(NAME_KEY) || '',
+      budget: parseFloat(localStorage.getItem(BUDGET_KEY)) || 0,
+      income: parseFloat(localStorage.getItem(INCOME_KEY)) || 0,
+      theme:  localStorage.getItem(THEME_KEY) || 'system',
+      rates,
+    },
+  };
+}
+
+async function exportBackup() {
+  const json = JSON.stringify(buildBackup(), null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  await shareOrDownload(blob,
+    `expense-backup-${todayIso()}.json`,
+    'Expense Tracker — Full Backup');
+}
+
+// Full-replace restore. Throws on any structural mismatch so the caller can
+// surface a toast without silently corrupting existing data.
+function applyBackup(obj) {
+  if (!obj || obj.schema !== 'expenseTracker.backup') throw new Error('Not a backup file');
+  if (!obj.state || !Array.isArray(obj.state.expenses) || !Array.isArray(obj.state.categories)) {
+    throw new Error('Backup is missing expenses / categories');
+  }
+  state = obj.state;
+  saveState();
+  const s = obj.settings || {};
+  if (typeof s.name === 'string') localStorage.setItem(NAME_KEY, s.name);
+  if (s.budget > 0) localStorage.setItem(BUDGET_KEY, s.budget); else localStorage.removeItem(BUDGET_KEY);
+  if (s.income > 0) localStorage.setItem(INCOME_KEY, s.income); else localStorage.removeItem(INCOME_KEY);
+  if (s.theme) { localStorage.setItem(THEME_KEY, s.theme); applyTheme(s.theme); }
+  if (s.rates && typeof s.rates === 'object') {
+    Object.keys(s.rates).forEach(code => {
+      if (!rates[code]) return;
+      if (typeof s.rates[code].enabled === 'boolean') rates[code].enabled = s.rates[code].enabled;
+      if (s.rates[code].rate > 0) rates[code].rate = s.rates[code].rate;
+    });
+    saveRates();
+  }
+  return { expenses: state.expenses.length, categories: state.categories.length };
+}
+
+document.getElementById('importBackupFile').addEventListener('change', async (ev) => {
+  const file = ev.target.files[0];
+  ev.target.value = ''; // allow re-selecting the same file later
+  if (!file) return;
+  if (!confirm('Restoring will replace ALL current data with the backup. Continue?')) return;
+  try {
+    const text = await file.text();
+    const obj = JSON.parse(text);
+    const res = applyBackup(obj);
+    showToast(`Restored ${res.expenses} expense${res.expenses===1?'':'s'} · ${res.categories} categor${res.categories===1?'y':'ies'}`);
+    renderGreeting();
+    renderAddTab(); renderHistory(); renderCategories(); renderAnalytics();
+    if (typeof renderInsights === 'function') renderInsights();
+  } catch (err) {
+    showToast(err.message || 'Restore failed');
+  }
+});
+
+// ---------- Detailed statement image ----------
+// Portrait card that itemises every expense in the currently viewed month,
+// sorted newest-first. Complements shareInsightsImage() (which is chart-first);
+// this one is the receipt-style ledger.
+async function shareDetailedImage() {
+  const y = viewedMonth.getFullYear(), m = viewedMonth.getMonth();
+  const inMonth = state.expenses
+    .filter(e => { const d = new Date(e.date); return d.getFullYear() === y && d.getMonth() === m; })
+    .slice()
+    .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+  if (inMonth.length === 0) { showToast('No data for this month'); return; }
+
+  const MAX_ROWS = 60;
+  const rowsShown = inMonth.slice(0, MAX_ROWS);
+  const truncated = inMonth.length - rowsShown.length;
+
+  const W = 1080;
+  const HEADER_H = 340;
+  const ROW_H = 74;
+  const FOOTER_H = 140;
+  const LIST_TOP = HEADER_H + 60;
+  const H = LIST_TOP + rowsShown.length * ROW_H + (truncated > 0 ? 60 : 20) + FOOTER_H;
+
+  const F = '-apple-system, Helvetica Neue, Arial, sans-serif';
+  const ACCENT = '#4ECDC4', DARK = '#1C1917', MED = '#6B7280', LIGHT = '#F5F4F2', CARD = '#FFFFFF';
+
+  const total = inMonth.reduce((s, e) => s + e.amount, 0);
+  const avg = total / inMonth.length;
+  const who = getUserName() || null;
+  const monthLabel = viewedMonth.toLocaleString(locale, { month: 'long', year: 'numeric' });
+
+  const xe = xmlEscape;
+  const T = (x, yy, txt, sz, wt='400', fill=DARK, anchor='start', opts='') =>
+    `<text x="${x}" y="${yy}" font-family="${F}" font-size="${sz}" font-weight="${wt}" fill="${fill}" text-anchor="${anchor}" ${opts}>${xe(txt)}</text>`;
+  const truncate = (s, max) => (s || '').length <= max ? (s || '') : (s.slice(0, max - 1) + '…');
+
+  const rowSvg = rowsShown.map((e, i) => {
+    const cat = state.categories.find(c => c.id === e.categoryId) ||
+                { name: 'Uncategorized', emoji: '•', color: '#9CA3AF' };
+    const yy = LIST_TOP + i * ROW_H;
+    const zebra = i % 2 === 0 ? '' : `<rect x="60" y="${yy}" width="${W-120}" height="${ROW_H}" fill="rgba(0,0,0,0.03)"/>`;
+    const dateS = fmtDate(e.date);
+    const note = truncate(e.note || '—', 38);
+    const catLine = truncate(`${cat.emoji || ''} ${cat.name}`, 30);
+    return `
+      ${zebra}
+      <rect x="70" y="${yy + 16}" width="6" height="${ROW_H - 32}" rx="3" fill="${cat.color}"/>
+      ${T(96,  yy + 32, catLine, 24, '600', DARK)}
+      ${T(96,  yy + 60, `${dateS}${e.note ? ' · ' + note : ''}`, 20, '400', MED)}
+      ${T(W - 80, yy + 48, xe(money(e.amount)), 26, '700', DARK, 'end')}
+    `;
+  }).join('');
+
+  const listBottom = LIST_TOP + rowsShown.length * ROW_H;
+  const truncBlock = truncated > 0
+    ? T(W/2, listBottom + 40,
+        `+ ${truncated} more entr${truncated === 1 ? 'y' : 'ies'} — see full CSV / backup for the rest`,
+        22, '500', MED, 'middle')
+    : '';
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">
+    <defs>
+      <linearGradient id="hgd" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#0F3D3A"/>
+        <stop offset="100%" stop-color="#1A5754"/>
+      </linearGradient>
+    </defs>
+    <rect width="${W}" height="${H}" fill="${LIGHT}"/>
+
+    <!-- Header band -->
+    <rect width="${W}" height="230" fill="url(#hgd)"/>
+    <rect x="0" y="200" width="${W}" height="60" fill="${LIGHT}" rx="30"/>
+    <rect x="0" y="230" width="${W}" height="30" fill="${LIGHT}"/>
+
+    ${T(80, 80, 'DETAILED EXPENSE STATEMENT', 22, '600', ACCENT, 'start', 'letter-spacing="3"')}
+    ${T(80, 140, who ? `${who}'s Ledger` : 'Monthly Ledger', 44, '700', '#FFFFFF')}
+    ${T(80, 188, monthLabel, 28, '400', 'rgba(255,255,255,0.65)')}
+    ${T(W - 80, 100, new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}), 22, '400', 'rgba(255,255,255,0.5)', 'end')}
+
+    <!-- KPI band -->
+    <rect x="60" y="250" width="${W - 120}" height="120" rx="16" fill="${CARD}"/>
+    ${T(110, 292, 'TOTAL', 16, '600', MED, 'start', 'letter-spacing="1"')}
+    ${T(110, 340, xe(money(total)), total > 99999 ? 28 : 32, '700', DARK)}
+
+    ${T(W/2, 292, 'ENTRIES', 16, '600', MED, 'middle', 'letter-spacing="1"')}
+    ${T(W/2, 340, String(inMonth.length), 32, '700', DARK, 'middle')}
+
+    ${T(W - 110, 292, 'AVG / ENTRY', 16, '600', MED, 'end', 'letter-spacing="1"')}
+    ${T(W - 110, 340, xe(money(Math.round(avg))), avg > 99999 ? 28 : 32, '700', DARK, 'end')}
+
+    <!-- List header -->
+    ${T(80, HEADER_H + 30, `${rowsShown.length} entr${rowsShown.length===1?'y':'ies'}`, 22, '600', MED, 'start', 'letter-spacing="2"')}
+    ${T(W - 80, HEADER_H + 30, 'AMOUNT', 22, '600', MED, 'end', 'letter-spacing="2"')}
+    <line x1="60" y1="${HEADER_H + 42}" x2="${W - 60}" y2="${HEADER_H + 42}" stroke="rgba(0,0,0,0.08)"/>
+
+    <!-- Rows -->
+    ${rowSvg}
+    ${truncBlock}
+
+    <!-- Footer -->
+    <rect x="0" y="${H - FOOTER_H}" width="${W}" height="${FOOTER_H}" fill="#0F3D3A"/>
+    ${T(80, H - 62, 'Expense Tracker · Detailed Ledger', 24, '400', 'rgba(255,255,255,0.5)')}
+    ${T(W - 80, H - 62, new Date().getFullYear().toString(), 24, '400', 'rgba(255,255,255,0.4)', 'end')}
+    <rect x="${W/2 - 30}" y="${H - 90}" width="60" height="4" rx="2" fill="${ACCENT}" opacity="0.5"/>
+  </svg>`;
+
+  const blob = await svgToPngBlob(svg, W, H);
+  if (!blob) { showToast('Could not create image'); return; }
+  await shareOrDownload(blob,
+    `statement-${y}-${String(m+1).padStart(2,'0')}.png`,
+    `Expense Statement · ${monthLabel}`);
+}
 
 // ---------- ANALYTICS tab ----------
 let viewedMonth = new Date(); viewedMonth.setDate(1);
@@ -3338,12 +3525,24 @@ function openSettings() {
         </div>
 
         <div class="section" style="margin:0 0 16px;">
-          <div class="section-title">Data</div>
+          <div class="section-title">Backup &amp; Restore</div>
           <div class="card">
-            <div class="row"><button class="btn-link" id="settingsImport">Import from CSV…</button></div>
-            <div class="row"><button class="btn-link" id="settingsExport">Export &amp; Share CSV</button></div>
-            <div class="row"><button class="btn-link" id="settingsShareImg">Share Insights Image</button></div>
-            <div class="row"><button class="btn-link" id="settingsNotify">Enable budget notifications</button></div>
+            <div class="row"><button class="btn-link" id="settingsBackupExport">⬇︎ Backup all data (JSON)</button></div>
+            <div class="row"><button class="btn-link" id="settingsBackupImport">⬆︎ Restore from backup (JSON)…</button></div>
+            <div class="row" style="font-size:12px;color:var(--text-secondary);">
+              JSON backup includes every expense, category, your name, budget, income and currency settings.
+            </div>
+          </div>
+        </div>
+
+        <div class="section" style="margin:0 0 16px;">
+          <div class="section-title">Export &amp; Share</div>
+          <div class="card">
+            <div class="row"><button class="btn-link" id="settingsExport">📄 Export as CSV</button></div>
+            <div class="row"><button class="btn-link" id="settingsImport">📥 Import from CSV…</button></div>
+            <div class="row"><button class="btn-link" id="settingsShareImg">🖼 Share monthly insights image</button></div>
+            <div class="row"><button class="btn-link" id="settingsShareDetailImg">🧾 Share detailed statement image</button></div>
+            <div class="row"><button class="btn-link" id="settingsNotify">🔔 Enable budget notifications</button></div>
           </div>
         </div>
 
@@ -3408,6 +3607,12 @@ function openSettings() {
       });
 
       // --- Actions
+      body.querySelector('#settingsBackupExport').onclick = () => {
+        closeModal();
+        exportBackup();
+      };
+      body.querySelector('#settingsBackupImport').onclick = () =>
+        document.getElementById('importBackupFile').click();
       body.querySelector('#settingsImport').onclick = () =>
         document.getElementById('importFile').click();
       body.querySelector('#settingsExport').onclick = () => {
@@ -3417,6 +3622,10 @@ function openSettings() {
       body.querySelector('#settingsShareImg').onclick = () => {
         closeModal();
         shareInsightsImage();
+      };
+      body.querySelector('#settingsShareDetailImg').onclick = () => {
+        closeModal();
+        shareDetailedImage();
       };
       body.querySelector('#settingsNotify').onclick = async () => {
         if (!('Notification' in window)) { showToast('Not supported on this browser'); return; }
