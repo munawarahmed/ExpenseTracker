@@ -3706,6 +3706,17 @@ renderAddTab();
 // Ask for the user's name on first launch (non-blocking; shows over the app).
 promptForNameIfNeeded();
 
+// Persist the moment iOS hides the tab. If the system later evicts the app
+// from memory (which is what "not running in the background" actually looks
+// like on iOS), the latest state is already on disk.
+function persistAll() {
+  try { saveState(); saveRates(); } catch {}
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') persistAll();
+});
+window.addEventListener('pagehide', persistAll);
+
 // Register a trivial service worker so the app installs cleanly as a PWA
 // (some browsers require one for "Add to Home Screen" to stick).
 if ('serviceWorker' in navigator) {
